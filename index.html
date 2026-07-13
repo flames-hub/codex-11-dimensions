@@ -153,10 +153,14 @@ main{
   position:absolute;
   inset:0;
   background:
-    radial-gradient(ellipse at 24% 34%,hsl(var(--hue) 72% 42% / .14),transparent 32%),
-    radial-gradient(ellipse at 78% 62%,hsl(calc(var(--hue) + 54) 70% 38% / .11),transparent 29%),
-    radial-gradient(circle at 54% 46%,hsl(42 68% 54% / .045),transparent 22%);
-  filter:blur(18px) saturate(1.18);
+    radial-gradient(ellipse at 19% 31%,hsl(var(--hue) 82% 54% / .34),transparent 41%),
+    radial-gradient(ellipse at 82% 66%,hsl(calc(var(--hue) + 54) 80% 51% / .27),transparent 37%),
+    radial-gradient(ellipse at 58% 42%,hsl(calc(var(--hue) - 26) 72% 48% / .16),transparent 30%),
+    radial-gradient(circle at 51% 48%,hsl(42 78% 62% / .11),transparent 24%);
+  background-blend-mode:screen;
+  mix-blend-mode:screen;
+  opacity:.92;
+  filter:blur(11px) saturate(1.42);
   transform:translate3d(-2%,1%,0) scale(1.02);
   animation:nebula-drift 24s ease-in-out infinite alternate;
 }
@@ -1008,9 +1012,9 @@ resize();
 
 /* ---------- deep-space particles ---------- */
 const SPACE_LAYER_CONFIG = [
-  {count:28,size:.48,alpha:.08,speed:.0015,shift:-16,sat:54,light:76},
-  {count:18,size:.78,alpha:.13,speed:.0036,shift:12,sat:68,light:82},
-  {count:10,size:1.16,alpha:.20,speed:.0075,shift:38,sat:76,light:88},
+  {count:28,size:.88,alpha:.22,halo:1.9,speed:.0015,shift:-16,sat:58,light:80},
+  {count:18,size:1.32,alpha:.38,halo:2.3,speed:.0036,shift:12,sat:72,light:86},
+  {count:10,size:1.92,alpha:.62,halo:2.7,speed:.0075,shift:38,sat:80,light:92},
 ];
 let particleSeed = 0x11d0c0de;
 function spaceRand(){
@@ -1034,10 +1038,10 @@ const wrapUnit = value => ((value % 1) + 1) % 1;
 function drawSpace(D){
   const mobile = W < 820;
   const areaCount = Math.round(W * H / 18000);
-  const normalCap = mobile ? 24 : 56;
-  const denseCap = mobile ? 16 : 24;
+  const normalCap = mobile ? 32 : 56;
+  const denseCap = mobile ? 26 : 40;
   const total = reduced
-    ? 12
+    ? 18
     : Math.min(clamp(areaCount, mobile ? 12 : 20, normalCap), D >= 9 ? denseCap : normalCap);
   const counts = [
     Math.ceil(total * .5),
@@ -1050,13 +1054,13 @@ function drawSpace(D){
   const yawParallax = Math.sin(yaw) * .008;
   const pitchParallax = Math.sin(pitch) * .006;
   ctx.save();
-  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalCompositeOperation = 'lighter';
 
   for(let layerIndex = 0; layerIndex < spaceLayers.length; layerIndex++){
     const config = SPACE_LAYER_CONFIG[layerIndex];
     const layer = spaceLayers[layerIndex];
     const count = Math.min(counts[layerIndex], layer.length);
-    const shimmer = reduced ? 1 : .84 + .16 * Math.sin(spaceTime * (.42 + layerIndex * .17));
+    const shimmer = reduced ? 1 : .94 + .06 * Math.sin(spaceTime * (.42 + layerIndex * .17));
     ctx.globalAlpha = config.alpha * shimmer;
     ctx.fillStyle = `hsl(${hue + config.shift} ${config.sat}% ${config.light}%)`;
     ctx.beginPath();
@@ -1064,17 +1068,32 @@ function drawSpace(D){
       const p = layer[i];
       const x = wrapUnit(p.x + spaceTime * p.speed * p.dx + yawParallax * p.depth) * W;
       const y = wrapUnit(p.y + spaceTime * p.speed * p.dy + pitchParallax * p.depth) * H;
-      const pulse = reduced ? 1 : .88 + .12 * Math.sin(spaceTime * .9 + p.phase);
+      const pulse = reduced ? 1 : .94 + .06 * Math.sin(spaceTime * .9 + p.phase);
       const radius = config.size * pulse;
       ctx.moveTo(x + radius, y);
       ctx.arc(x, y, radius, 0, Math.PI * 2);
     }
     ctx.fill();
 
+    if(layerIndex > 0){
+      ctx.globalAlpha = config.alpha * (layerIndex === 2 ? .24 : .16) * shimmer;
+      ctx.beginPath();
+      for(let i = 0; i < count; i++){
+        const p = layer[i];
+        const x = wrapUnit(p.x + spaceTime * p.speed * p.dx + yawParallax * p.depth) * W;
+        const y = wrapUnit(p.y + spaceTime * p.speed * p.dy + pitchParallax * p.depth) * H;
+        const pulse = reduced ? 1 : .94 + .06 * Math.sin(spaceTime * .9 + p.phase);
+        const radius = config.size * config.halo * pulse;
+        ctx.moveTo(x + radius, y);
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+      }
+      ctx.fill();
+    }
+
     if(layerIndex === 2 && !reduced){
-      ctx.globalAlpha = .075;
+      ctx.globalAlpha = .19;
       ctx.strokeStyle = `hsl(${hue + 30} 74% 84%)`;
-      ctx.lineWidth = .6;
+      ctx.lineWidth = .8;
       ctx.beginPath();
       for(let i = 0; i < count; i++){
         const p = layer[i];
