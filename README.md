@@ -9,6 +9,8 @@ https://flames-hub.github.io/codex-11-dimensions/
 ## Features
 
 - Explore hypercube projections from 1D through 11D.
+- Watch one extruded Codex knot collapse into 1D, flatten in 2D, rotate in 3D, and lift through compactified coordinates to an 11D brane.
+- See dimension-specific signatures including temporal echoes, compactification loops, string harmonics, and the actual 240 roots of E₈.
 - Rotate, zoom, pause, reset, and boost dense projection lines.
 - Switch between English and Japanese.
 - Read dimension-specific explanations, resident quotes, and observatory logs.

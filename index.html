@@ -196,8 +196,8 @@ main{
   justify-content:center;
   gap:clamp(14px,3vw,42px);
   color:var(--ink);
-  opacity:.06;
-  transform:translate(-8%,24%) rotate(-3deg);
+  opacity:.035;
+  transform:translate(-8%,31%) rotate(-3deg);
   transition:opacity .6s;
   pointer-events:none;
   user-select:none;
@@ -269,6 +269,43 @@ canvas#cv.dragging{cursor:grabbing}
   font-size:calc(var(--fs)*10px);
   line-height:1.55;
   letter-spacing:.03em;
+}
+.codex-readout{
+  position:absolute;
+  z-index:4;
+  right:18px;
+  bottom:17px;
+  width:min(330px,calc(100% - 190px));
+  padding-right:11px;
+  border-right:1px solid hsl(var(--hue) 68% 68% / .42);
+  text-align:right;
+  font-family:var(--mono);
+  text-shadow:0 2px 14px var(--bg),0 2px 14px var(--bg);
+  pointer-events:none;
+  transition:opacity .35s,border-color .6s;
+}
+.codex-readout-kicker{
+  display:block;
+  color:hsl(var(--hue) 70% 72% / .66);
+  font-size:calc(var(--fs)*7px);
+  font-weight:600;
+  letter-spacing:.2em;
+}
+.codex-readout-mode{
+  display:block;
+  margin-top:4px;
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:calc(var(--fs)*14px);
+  font-weight:600;
+  letter-spacing:.05em;
+}
+.codex-readout-desc{
+  display:block;
+  margin-top:3px;
+  color:hsl(215 22% 79% / .62);
+  font-size:calc(var(--fs)*8px);
+  line-height:1.5;
 }
 .hint{
   position:absolute;
@@ -496,7 +533,8 @@ canvas#cv.dragging{cursor:grabbing}
 .finale-word.show{opacity:.9;transform:translate(-50%,0)}
 .stage.compile-active .observatory-log,
 .stage.compile-active .stage-tools,
-.stage.compile-active .hint{opacity:.18}
+.stage.compile-active .hint,
+.stage.compile-active .codex-readout{opacity:.18}
 .breach-overlay{
   position:absolute;
   z-index:10;
@@ -900,7 +938,7 @@ input[type=range]::-moz-range-thumb{
   .rail{padding-inline:20px}
   .ai-watermark{
     gap:10px;
-    transform:translate(-4%,24%) rotate(-2deg);
+    transform:translate(-4%,32%) rotate(-2deg);
   }
   .ai-watermark svg{width:clamp(58px,20vw,84px)}
   .codex-word{
@@ -916,6 +954,14 @@ input[type=range]::-moz-range-thumb{
     padding-left:8px;
   }
   .observatory-label{font-size:calc(var(--fs)*7px)}
+  .codex-readout{
+    right:12px;
+    bottom:49px;
+    width:min(218px,calc(100% - 142px));
+    padding-right:8px;
+  }
+  .codex-readout-mode{font-size:calc(var(--fs)*11px)}
+  .codex-readout-desc{font-size:calc(var(--fs)*7px)}
   .observatory-text{font-size:calc(var(--fs)*8px);line-height:1.5}
   .compile-experience{padding:10px}
   .compile-panel,.compile-experience.is-running .compile-panel{padding:18px 16px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
@@ -937,7 +983,7 @@ input[type=range]::-moz-range-thumb{
   }
 }
 @media (prefers-reduced-motion:reduce){
-  .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.toast,.compile-experience,.compile-panel,.finale-word{transition:none}
+  .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.codex-readout,.toast,.compile-experience,.compile-panel,.finale-word{transition:none}
   .cosmic-field::before,.cosmic-field::after{animation:none}
   .ghost-slot button.ghost12.wiggle{animation:none}
   .stage.dimension-pulse::after,#app.reality-breach .stage{animation:none}
@@ -985,6 +1031,11 @@ input[type=range]::-moz-range-thumb{
       <div class="observatory-log" role="note">
         <span class="observatory-label" id="logLabel">OBSERVATORY LOG · 03</span>
         <span class="observatory-text" id="logText">Local conditions nominal. Coffee remains inside the cup.</span>
+      </div>
+      <div class="codex-readout" role="note" aria-label="Codex dimensional appearance">
+        <span class="codex-readout-kicker" id="codexReadoutKicker">CODEX SPECIMEN · 3D PROJECTION</span>
+        <strong class="codex-readout-mode" id="codexReadoutMode">VOLUMETRIC KNOT</strong>
+        <span class="codex-readout-desc" id="codexReadoutDesc">Depth unlocked. The knot can finally rotate without lying.</span>
       </div>
       <div class="hint" id="hint">DRAG — rotate · WHEEL — zoom · SLIDER — dimension</div>
       <div class="toast" id="toast" role="status"></div>
@@ -1224,6 +1275,36 @@ const EXPERIENCE = {
     breachCode:'ERR_THEORY_NOT_FOUND', breachDetail:'因果律が依存関係から見つかりません。',
     breachWarmup:['認証 1/3 · 12次元の観測許可を申請。','認証 2/3 · 申請を到達不能な次元へ転送。'],
   },
+};
+
+/* how the same CODEX object appears as the observation space gains axes */
+const CODEX_VIEW = {
+  en: [null,
+    {mode:'AXIAL SHADOW', desc:'Every point has been audited down to one coordinate. The logo is now a luminous barcode.'},
+    {mode:'FLAT GLYPH', desc:'A complete knot, provided nobody asks which strand passes over the other.'},
+    {mode:'VOLUMETRIC KNOT', desc:'Depth unlocked. The knot can finally rotate without lying.'},
+    {mode:'TEMPORAL ECHO', desc:'The same object arrives in several moments. Version control has become relativistic.'},
+    {mode:'POSSIBILITY FIBER', desc:'A compact circular coordinate opens around every ribbon of the knot.'},
+    {mode:'COMPACTIFIED BLOOM', desc:'Hidden coordinates fold into a six-petal geometry. The front door remains missing.'},
+    {mode:'EXOTIC SMOOTHING', desc:'Topologically familiar, smoothly suspicious. Seven shells disagree on the surface.'},
+    {mode:'E₈ SYMMETRY FIELD', desc:'The knot is witnessed by all 240 roots of E₈. Furniture symmetry is not guaranteed.'},
+    {mode:'STRING HARMONICS', desc:'Nine spatial channels carry the same knot as a tuned set of vibrating strings.'},
+    {mode:'FIVE-THEORY SUPERPOSITION', desc:'Five consistent shadows overlap. Accounting has merged them into one department.'},
+    {mode:'M-BRANE ENTITY', desc:'The knot expands from strands into a membrane. The M still refuses to explain itself.'},
+  ],
+  ja: [null,
+    {mode:'軸上の影', desc:'すべての点を1つの座標まで監査。ロゴは発光するバーコードになりました。'},
+    {mode:'平面記号', desc:'完全なノットです。ただし、どの帯が上を通るか聞いてはいけません。'},
+    {mode:'立体ノット', desc:'奥行きを解禁。ノットがようやく嘘をつかずに回転できます。'},
+    {mode:'時間残像', desc:'同じ物体が複数の時刻に到着。バージョン管理が相対論的になりました。'},
+    {mode:'可能性ファイバー', desc:'ノットの各リボンを囲む、小さく丸まった円環座標が開きます。'},
+    {mode:'コンパクト化の花', desc:'不可視座標が6枚の花弁へ折り畳まれます。玄関はまだ見つかりません。'},
+    {mode:'異なる滑らかさ', desc:'位相的には見慣れた姿、滑らかさは要注意。7つの殻が表面に異議を唱えます。'},
+    {mode:'E₈対称場', desc:'E₈の240本のルートがノットを観測。家具の対称性までは保証しません。'},
+    {mode:'弦の調律', desc:'9本の空間チャネルが、同じノットを調律済みの振動として運びます。'},
+    {mode:'五理論の重ね合わせ', desc:'5つの無矛盾な影が重なります。経理上は同じ部署へ統合済みです。'},
+    {mode:'Mブレーン存在', desc:'ノットが線から膜へ膨張。「M」は今回も説明を拒否しています。'},
+  ],
 };
 
 /* the resident's log — one voice per dimension */
@@ -1535,6 +1616,514 @@ function prepareFinaleTargets(){
     finaleTargetsReady = true;
   }
 }
+
+/* ---------- CODEX object: one knot lifted from 1D through 11D ---------- */
+const CODEX_CONTOUR_SAMPLES = 360;
+const CODEX_DEPTH_BUCKETS = 8;
+const codexBuckets = Array.from({length:CODEX_DEPTH_BUCKETS}, () => []);
+const codexAxisProfile = new Float32Array(48);
+let codexPath2D = null;
+let codexEntityReady = false;
+let codexPointCount = 0;
+let codexPointCoords = new Float32Array(0);
+let codexPointSX = new Float32Array(0);
+let codexPointSY = new Float32Array(0);
+let codexPointDP = new Float32Array(0);
+let codexContourCoords = new Float32Array(0);
+let codexContourSX = new Float32Array(0);
+let codexContourSY = new Float32Array(0);
+let codexContourDP = new Float32Array(0);
+const codexContourBreaks = new Uint8Array(CODEX_CONTOUR_SAMPLES);
+let e8Coords = new Float32Array(0);
+let e8SX = new Float32Array(0);
+let e8SY = new Float32Array(0);
+let e8DP = new Float32Array(0);
+let e8Count = 0;
+
+function liftCodexPoint(array, offset, x, y, z, phase){
+  const theta = Math.atan2(y, x);
+  const rho = Math.hypot(x, y);
+  array[offset] = x;
+  array[offset + 1] = y;
+  array[offset + 2] = z;
+  const frequencies = [1, 2, 3, 5];
+  const amplitudes = [.38, .29, .22, .17];
+  for(let pair = 0; pair < 4; pair++){
+    const phi = theta * frequencies[pair] + rho * (.8 + pair * .37) + phase;
+    array[offset + 3 + pair * 2] = Math.cos(phi) * amplitudes[pair];
+    array[offset + 4 + pair * 2] = Math.sin(phi) * amplitudes[pair];
+  }
+}
+
+function prepareE8Roots(){
+  const roots = [];
+  const addRoot = values => {
+    for(let k = 0; k < MAXD; k++) roots.push(k < 8 ? values[k] * .46 : 0);
+  };
+  for(let a = 0; a < 8; a++){
+    for(let b = a + 1; b < 8; b++){
+      for(const sa of [-1, 1]){
+        for(const sb of [-1, 1]){
+          const v = new Array(8).fill(0);
+          v[a] = sa;
+          v[b] = sb;
+          addRoot(v);
+        }
+      }
+    }
+  }
+  for(let mask = 0; mask < 256; mask++){
+    let minus = 0;
+    const v = new Array(8);
+    for(let k = 0; k < 8; k++){
+      const negative = (mask >> k & 1) === 1;
+      if(negative) minus++;
+      v[k] = negative ? -.5 : .5;
+    }
+    if((minus & 1) === 0) addRoot(v);
+  }
+  e8Coords = Float32Array.from(roots);
+  e8Count = e8Coords.length / MAXD;
+  e8SX = new Float32Array(e8Count);
+  e8SY = new Float32Array(e8Count);
+  e8DP = new Float32Array(e8Count);
+}
+
+function prepareCodexDimensionIcon(){
+  const interior = [];
+  try{
+    codexPath2D = new Path2D(logoPath.getAttribute('d'));
+    const scratch = document.createElement('canvas');
+    scratch.width = scratch.height = 96;
+    const sctx = scratch.getContext('2d', {willReadFrequently:true});
+    sctx.setTransform(4, 0, 0, 4, 0, 0);
+    sctx.fillStyle = '#fff';
+    sctx.fill(codexPath2D);
+    const pixels = sctx.getImageData(0, 0, 96, 96).data;
+    for(let py = 3; py < 96; py += 5){
+      for(let px = 3; px < 96; px += 5){
+        if(pixels[(py * 96 + px) * 4 + 3] > 48){
+          interior.push([(px / 4 - 12) / 12, (py / 4 - 12) / 12]);
+        }
+      }
+    }
+  }catch(err){
+    codexPath2D = null;
+  }
+
+  if(interior.length < 48){
+    for(let i = 0; i < 2048; i += 8){
+      interior.push([finaleTargets[i * 2] * 2, finaleTargets[i * 2 + 1] * 2]);
+    }
+  }
+
+  let profileMax = 1;
+  for(const point of interior){
+    const bin = clamp(Math.floor((point[0] + 1) * .5 * codexAxisProfile.length), 0, codexAxisProfile.length - 1);
+    codexAxisProfile[bin] += 1;
+    if(codexAxisProfile[bin] > profileMax) profileMax = codexAxisProfile[bin];
+  }
+  for(let i = 0; i < codexAxisProfile.length; i++) codexAxisProfile[i] /= profileMax;
+
+  codexPointCount = interior.length * 3;
+  codexPointCoords = new Float32Array(codexPointCount * MAXD);
+  codexPointSX = new Float32Array(codexPointCount);
+  codexPointSY = new Float32Array(codexPointCount);
+  codexPointDP = new Float32Array(codexPointCount);
+  let pointIndex = 0;
+  for(const point of interior){
+    const theta = Math.atan2(point[1], point[0]);
+    const rho = Math.hypot(point[0], point[1]);
+    const crossing = Math.sin(theta * 3 + rho * 4) * .085;
+    for(let layer = -1; layer <= 1; layer++){
+      liftCodexPoint(
+        codexPointCoords,
+        pointIndex * MAXD,
+        point[0],
+        point[1],
+        layer * .3 + crossing,
+        layer * .62
+      );
+      pointIndex++;
+    }
+  }
+
+  codexContourCoords = new Float32Array(CODEX_CONTOUR_SAMPLES * 2 * MAXD);
+  codexContourSX = new Float32Array(CODEX_CONTOUR_SAMPLES * 2);
+  codexContourSY = new Float32Array(CODEX_CONTOUR_SAMPLES * 2);
+  codexContourDP = new Float32Array(CODEX_CONTOUR_SAMPLES * 2);
+  let lastX = 0, lastY = 0;
+  try{
+    const length = logoPath.getTotalLength();
+    for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i++){
+      const p = logoPath.getPointAtLength(length * i / (CODEX_CONTOUR_SAMPLES - 1));
+      const x = (p.x - 12) / 12;
+      const y = (p.y - 12) / 12;
+      codexContourBreaks[i] = i === 0 || Math.hypot(x - lastX, y - lastY) > .18 ? 1 : 0;
+      lastX = x;
+      lastY = y;
+      const crossing = Math.sin(Math.atan2(y, x) * 3 + Math.hypot(x, y) * 4) * .07;
+      liftCodexPoint(codexContourCoords, i * MAXD, x, y, -.34 + crossing, -.42);
+      liftCodexPoint(codexContourCoords, (CODEX_CONTOUR_SAMPLES + i) * MAXD, x, y, .34 + crossing, .42);
+    }
+  }catch(err){
+    for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i++){
+      const sourceIndex = Math.floor(i * 2048 / CODEX_CONTOUR_SAMPLES);
+      const x = finaleTargets[sourceIndex * 2] * 2;
+      const y = finaleTargets[sourceIndex * 2 + 1] * 2;
+      codexContourBreaks[i] = i === 0 ? 1 : 0;
+      liftCodexPoint(codexContourCoords, i * MAXD, x, y, -.34, -.42);
+      liftCodexPoint(codexContourCoords, (CODEX_CONTOUR_SAMPLES + i) * MAXD, x, y, .34, .42);
+    }
+  }
+
+  prepareE8Roots();
+  codexEntityReady = true;
+}
+
+function transformCodexSet(source, count, D, cs, sn, planeList, axisScale, sx, sy, dp, scaleMultiplier = 1){
+  const invNorm = 1 / Math.sqrt(Math.max(dcur, 1));
+  const persp = PERSP + .55 * Math.max(0, dcur - 6);
+  const scale = Math.min(W, H) * .255 * zoom * Math.sqrt(Math.max(dcur, 1)) * scaleMultiplier;
+  const cx = W * .5;
+  const cy = H * (W < 600 ? .47 : .49);
+  let fmin = Infinity, fmax = -Infinity;
+
+  for(let i = 0; i < count; i++){
+    const offset = i * MAXD;
+    for(let k = 0; k < D; k++) P[k] = source[offset + k] * axisScale[k];
+    for(let p = 0; p < planeList.length; p++){
+      const a = planeList[p][0], b = planeList[p][1];
+      const x = P[a], y = P[b];
+      P[a] = x * cs[p] - y * sn[p];
+      P[b] = x * sn[p] + y * cs[p];
+    }
+    for(let k = 0; k < D; k++) P[k] *= invNorm;
+    let f = 1;
+    for(let k = D - 1; k >= 2; k--){
+      const w = persp / (persp - P[k]);
+      for(let m = 0; m < k; m++) P[m] *= w;
+      f *= w;
+    }
+    sx[i] = cx + P[0] * scale;
+    sy[i] = cy + (D >= 2 ? P[1] : 0) * scale;
+    dp[i] = f;
+    if(f < fmin) fmin = f;
+    if(f > fmax) fmax = f;
+  }
+  return [fmin, fmax, cx, cy, scale];
+}
+
+function drawCodexDimensionalField(hue){
+  if(!codexEntityReady || finaleMix > .94) return;
+  const D = clamp(Math.round(dcur), 1, MAXD);
+  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' ? 1 : .72);
+  const cx = W * .5;
+  const cy = H * (W < 600 ? .47 : .49);
+  const size = Math.min(W, H) * .255 * zoom;
+  const t = reduced ? 0 : spaceTime;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = 'hsla(' + (hue + 24) + ',82%,72%,' + (.16 * fade) + ')';
+  ctx.fillStyle = 'hsla(' + (hue + 34) + ',88%,78%,' + (.3 * fade) + ')';
+  ctx.lineWidth = .8;
+
+  if(D === 1){
+    const x0 = cx - size, x1 = cx + size;
+    ctx.beginPath();
+    ctx.moveTo(x0, cy);
+    ctx.lineTo(x1, cy);
+    ctx.stroke();
+    for(let i = 0; i < codexAxisProfile.length; i++){
+      const x = x0 + (i + .5) / codexAxisProfile.length * (x1 - x0);
+      const h = 3 + codexAxisProfile[i] * size * .13;
+      ctx.beginPath();
+      ctx.moveTo(x, cy - h);
+      ctx.lineTo(x, cy + h);
+      ctx.stroke();
+    }
+    ctx.fillRect(x0 - 2, cy - 8, 2, 16);
+    ctx.fillRect(x1, cy - 8, 2, 16);
+  }else if(D === 2){
+    const r = size * .86;
+    ctx.strokeRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.beginPath();
+    ctx.moveTo(cx - r, cy);
+    ctx.lineTo(cx + r, cy);
+    ctx.moveTo(cx, cy - r);
+    ctx.lineTo(cx, cy + r);
+    const scanY = cy - r + wrapUnit(t * .08) * r * 2;
+    ctx.moveTo(cx - r, scanY);
+    ctx.lineTo(cx + r, scanY);
+    ctx.stroke();
+  }else if(D === 3){
+    for(let i = 0; i < 3; i++){
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, size * (.76 + i * .05), size * (.18 + i * .035), t * .055 + i * Math.PI / 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }else if(D <= 7){
+    for(let i = 0; i < D; i++){
+      ctx.beginPath();
+      ctx.ellipse(
+        cx,
+        cy,
+        size * (.7 + (i % 2) * .08),
+        size * (.13 + (i % 3) * .045),
+        t * .035 + i * Math.PI / D,
+        0,
+        Math.PI * 2
+      );
+      ctx.stroke();
+    }
+  }else if(D === 8){
+    ctx.beginPath();
+    for(let i = 0; i < 8; i++){
+      const a = i * Math.PI / 4 + t * .025;
+      const x = cx + Math.cos(a) * size * .92;
+      const y = cy + Math.sin(a) * size * .92;
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      ctx.moveTo(x + 2, y);
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+  }else if(D === 9){
+    for(let band = -4; band <= 4; band++){
+      ctx.beginPath();
+      for(let i = 0; i <= 56; i++){
+        const x = cx - size + i / 56 * size * 2;
+        const y = cy + band * size * .045 + Math.sin(i * .33 + t * .8 + band) * size * .026;
+        if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }else if(D === 10){
+    for(let branch = 0; branch < 5; branch++){
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, size * (.68 + branch * .035), size * (.16 + branch * .018), t * .025 + branch * Math.PI / 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }else{
+    for(let band = -5; band <= 5; band++){
+      ctx.beginPath();
+      for(let i = 0; i <= 64; i++){
+        const x = cx - size * 1.12 + i / 64 * size * 2.24;
+        const y = cy + band * size * .04 + Math.sin(i * .28 + t * .72 + band * .7) * size * .033;
+        if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawCodexPathMaterial(hue, fade){
+  if(!codexPath2D) return;
+  const flatWeight = clamp(1 - Math.abs(dcur - 2), 0, 1);
+  const volumeWeight = clamp(1 - Math.abs(dcur - 3), 0, 1);
+  if(flatWeight <= .001 && volumeWeight <= .001) return;
+  const size = Math.min(W, H) * .255 * zoom;
+  const cx = W * .5;
+  const cy = H * (W < 600 ? .47 : .49);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  if(flatWeight > .001){
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(size / 12, size / 12);
+    ctx.translate(-12, -12);
+    ctx.fillStyle = 'hsla(' + (hue + 16) + ',78%,64%,' + (.14 * flatWeight * fade) + ')';
+    ctx.strokeStyle = 'hsla(' + (hue + 32) + ',88%,84%,' + (.62 * flatWeight * fade) + ')';
+    ctx.lineWidth = .075;
+    ctx.fill(codexPath2D);
+    ctx.stroke(codexPath2D);
+    ctx.restore();
+  }
+  if(volumeWeight > .001){
+    const mobile = W < 600;
+    const step = mobile ? 2 : 1;
+    const dx = Math.sin(rotT * .11 + yaw) * size * .065;
+    const dy = -Math.sin(rotT * .08 + pitch) * size * .045;
+    for(let layer = -3; layer <= 3; layer += step){
+      const depth = (layer + 3) / 6;
+      ctx.save();
+      ctx.translate(cx + dx * layer / 3, cy + dy * layer / 3);
+      ctx.scale(size / 12, size / 12);
+      ctx.translate(-12, -12);
+      ctx.fillStyle = 'hsla(' + (hue + 8 + depth * 26) + ',76%,' + (42 + depth * 32) + '%,' + ((.022 + depth * .026) * volumeWeight * fade) + ')';
+      ctx.fill(codexPath2D);
+      if(layer === 3){
+        ctx.strokeStyle = 'hsla(' + (hue + 30) + ',88%,86%,' + (.5 * volumeWeight * fade) + ')';
+        ctx.lineWidth = .07;
+        ctx.stroke(codexPath2D);
+      }
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
+function strokeCodexContour(layer, color, width){
+  const offset = layer * CODEX_CONTOUR_SAMPLES;
+  ctx.beginPath();
+  for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i++){
+    const index = offset + i;
+    if(codexContourBreaks[i]) ctx.moveTo(codexContourSX[index], codexContourSY[index]);
+    else ctx.lineTo(codexContourSX[index], codexContourSY[index]);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.stroke();
+}
+
+function drawE8Projection(D, cs, sn, planeList, axisScale, hue, fade){
+  const weight = clamp(1 - Math.abs(dcur - 8), 0, 1);
+  if(weight <= .001 || e8Count !== 240) return;
+  const transformed = transformCodexSet(e8Coords, e8Count, D, cs, sn, planeList, axisScale, e8SX, e8SY, e8DP, 1.52);
+  const fmin = transformed[0], fmax = transformed[1];
+  const range = Math.max(fmax - fmin, 1e-6);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = 'hsla(' + (hue + 28) + ',88%,80%,' + (.3 * weight * fade) + ')';
+  ctx.beginPath();
+  for(let i = 0; i < e8Count; i++){
+    const depth = (e8DP[i] - fmin) / range;
+    const radius = .7 + depth * 1.05;
+    ctx.moveTo(e8SX[i] + radius, e8SY[i]);
+    ctx.arc(e8SX[i], e8SY[i], radius, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
+  if(!codexEntityReady) return;
+  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' ? 1 : .86);
+  if(fade <= .004) return;
+  drawCodexPathMaterial(hue, fade);
+  drawE8Projection(D, cs, sn, planeList, axisScale, hue, fade);
+
+  const pointResult = transformCodexSet(
+    codexPointCoords,
+    codexPointCount,
+    D,
+    cs,
+    sn,
+    planeList,
+    axisScale,
+    codexPointSX,
+    codexPointSY,
+    codexPointDP
+  );
+  transformCodexSet(
+    codexContourCoords,
+    CODEX_CONTOUR_SAMPLES * 2,
+    D,
+    cs,
+    sn,
+    planeList,
+    axisScale,
+    codexContourSX,
+    codexContourSY,
+    codexContourDP
+  );
+
+  let iconMinX = Infinity, iconMaxX = -Infinity, iconMinY = Infinity, iconMaxY = -Infinity;
+  for(let i = 0; i < codexPointCount; i++){
+    if(codexPointSX[i] < iconMinX) iconMinX = codexPointSX[i];
+    if(codexPointSX[i] > iconMaxX) iconMaxX = codexPointSX[i];
+    if(codexPointSY[i] < iconMinY) iconMinY = codexPointSY[i];
+    if(codexPointSY[i] > iconMaxY) iconMaxY = codexPointSY[i];
+  }
+  const projectedSpan = Math.max(iconMaxX - iconMinX, iconMaxY - iconMinY, 1);
+  const desiredSpan = Math.min(W, H) * .5 * zoom;
+  const projectionScale = clamp(desiredSpan / projectedSpan, .78, 1.85);
+  if(Math.abs(projectionScale - 1) > .001){
+    const centerX = pointResult[2], centerY = pointResult[3];
+    for(let i = 0; i < codexPointCount; i++){
+      codexPointSX[i] = centerX + (codexPointSX[i] - centerX) * projectionScale;
+      codexPointSY[i] = centerY + (codexPointSY[i] - centerY) * projectionScale;
+    }
+    for(let i = 0; i < CODEX_CONTOUR_SAMPLES * 2; i++){
+      codexContourSX[i] = centerX + (codexContourSX[i] - centerX) * projectionScale;
+      codexContourSY[i] = centerY + (codexContourSY[i] - centerY) * projectionScale;
+    }
+  }
+
+  const fmin = pointResult[0], fmax = pointResult[1];
+  const range = Math.max(fmax - fmin, 1e-6);
+  for(let b = 0; b < CODEX_DEPTH_BUCKETS; b++) codexBuckets[b].length = 0;
+  const stride = W < 600 || reduced ? 2 : 1;
+  for(let i = 0; i < codexPointCount; i += stride){
+    let bucket = Math.floor((codexPointDP[i] - fmin) / range * CODEX_DEPTH_BUCKETS);
+    bucket = clamp(bucket, 0, CODEX_DEPTH_BUCKETS - 1);
+    codexBuckets[bucket].push(i);
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for(let b = 0; b < CODEX_DEPTH_BUCKETS; b++){
+    const list = codexBuckets[b];
+    if(!list.length) continue;
+    const depth = b / (CODEX_DEPTH_BUCKETS - 1);
+    const radius = (D <= 2 ? .8 : .65 + depth * 1.05) + (compileState === 'running' ? .18 : 0);
+    ctx.fillStyle = 'hsla(' + (hue + 12 + depth * 24) + ',84%,' + (58 + depth * 28) + '%,' + ((.12 + depth * .46) * fade) + ')';
+    ctx.beginPath();
+    for(let i = 0; i < list.length; i++){
+      const index = list[i];
+      ctx.moveTo(codexPointSX[index] + radius, codexPointSY[index]);
+      ctx.arc(codexPointSX[index], codexPointSY[index], radius, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+
+  if(D >= 3){
+    ctx.beginPath();
+    for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i += 14){
+      ctx.moveTo(codexContourSX[i], codexContourSY[i]);
+      ctx.lineTo(codexContourSX[CODEX_CONTOUR_SAMPLES + i], codexContourSY[CODEX_CONTOUR_SAMPLES + i]);
+    }
+    ctx.strokeStyle = 'hsla(' + (hue + 8) + ',72%,62%,' + (.16 * fade) + ')';
+    ctx.lineWidth = .65;
+    ctx.stroke();
+  }
+  const visibleLayers = clamp(Math.round(dcur), 3, 11);
+  if(visibleLayers >= 4){
+    for(let layer = 1; layer < visibleLayers - 1; layer++){
+      const mix = layer / (visibleLayers - 1);
+      ctx.beginPath();
+      for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i++){
+        const front = CODEX_CONTOUR_SAMPLES + i;
+        const wave = visibleLayers >= 9 && !reduced
+          ? Math.sin(i * .16 + spaceTime * .72 + layer) * 1.25 * Math.sin(mix * Math.PI)
+          : 0;
+        const x = codexContourSX[i] + (codexContourSX[front] - codexContourSX[i]) * mix;
+        const y = codexContourSY[i] + (codexContourSY[front] - codexContourSY[i]) * mix + wave;
+        if(codexContourBreaks[i]) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = 'hsla(' + (hue + mix * 30) + ',78%,' + (62 + mix * 16) + '%,' + ((.05 + mix * .025) * fade) + ')';
+      ctx.lineWidth = .62;
+      ctx.stroke();
+    }
+  }
+  strokeCodexContour(0, 'hsla(' + (hue - 4) + ',72%,58%,' + (.28 * fade) + ')', D <= 2 ? 1 : .85);
+  strokeCodexContour(1, 'hsla(' + (hue + 32) + ',88%,88%,' + (.78 * fade) + ')', D <= 2 ? 1.6 : 1.25);
+
+  if(Math.round(dcur) === 10){
+    const size = Math.min(W, H) * .255 * zoom;
+    for(let branch = 0; branch < 5; branch++){
+      const a = branch * Math.PI * 2 / 5 + (reduced ? 0 : spaceTime * .018);
+      ctx.save();
+      ctx.translate(Math.cos(a) * size * .055, Math.sin(a) * size * .04);
+      strokeCodexContour(1, 'hsla(' + (hue + branch * 8) + ',84%,76%,' + (.12 * fade) + ')', .72);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
 const smoothstep = x => x * x * (3 - 2 * x);
 
 function drawDimensionPhenomenon(D, hue){
@@ -1676,6 +2265,7 @@ function draw(){
   const hue = 160 + (dcur - 1) * 18;
   drawSpace(D);
   drawDimensionPhenomenon(D, hue);
+  drawCodexDimensionalField(hue);
   const g = geo(D);
   const pl = planes(D);
 
@@ -1707,7 +2297,8 @@ function draw(){
   const nEdges = g.edges.length;
   const alphaScale = Math.max(0.1, Math.min(1, 9 / Math.sqrt(nEdges)));
   const sceneFade = 1 - finaleMix * .92;
-  const edgeAlpha = alpha => (boost ? Math.min(1, alpha * 3.2) : alpha) * sceneFade;
+  const structureFade = codexEntityReady ? .64 : 1;
+  const edgeAlpha = alpha => (boost ? Math.min(1, alpha * 3.2) : alpha) * sceneFade * structureFade;
   let widthAdd = 0;
   if(boost){
     widthAdd = 0.45;
@@ -1782,12 +2373,13 @@ function draw(){
       const t = flat ? 1 : (dp[i] - fmin) / frange;
       ctx.beginPath();
       ctx.arc(sx[i], sy[i], 1.6 + t * 1.6, 0, 6.2832);
-      ctx.fillStyle = `hsla(${hue}, 85%, ${62 + t * 24}%, ${0.5 + t * 0.5})`;
+      ctx.fillStyle = `hsla(${hue}, 85%, ${62 + t * 24}%, ${(0.5 + t * 0.5) * structureFade})`;
       ctx.fill();
     }
   }
 
   ctx.globalCompositeOperation = 'source-over';
+  drawCodexDimensionIcon(D, cs, sn, pl, axisScale, hue);
   if(finaleMix < .76) drawAxes(D, cs, sn, pl, axisScale);
   drawFinalePointCloud(g, hue);
 }
@@ -2185,6 +2777,20 @@ function renderObservatoryLog(n){
   $('logText').textContent = OBSERVATORY_LOG[lang][n - 1];
 }
 
+function renderCodexReadout(n){
+  const view = CODEX_VIEW[lang][n];
+  const label = lang === 'ja'
+    ? 'CODEX 観測対象 · ' + n + '次元投影'
+    : 'CODEX SPECIMEN · ' + n + 'D PROJECTION';
+  $('codexReadoutKicker').textContent = label;
+  $('codexReadoutMode').textContent = view.mode;
+  $('codexReadoutDesc').textContent = view.desc;
+  document.querySelector('.codex-readout').setAttribute(
+    'aria-label',
+    label + ' — ' + view.mode + '. ' + view.desc
+  );
+}
+
 /* ---------- toast ---------- */
 let toastTimer = 0;
 function showToast(msg, ms = 3600){
@@ -2218,6 +2824,7 @@ function setDimension(n, fromSlider){
   stage.dataset.dimension = String(n);
   pulseDimension();
   renderObservatoryLog(n);
+  renderCodexReadout(n);
 
   // fade out, swap, fade in — cancel any pending swap so rapid slider
   // drags don't strobe stale text
@@ -2636,6 +3243,7 @@ function applyLang(l){
   syncRotateBtn();
   renderDimTexts(target);
   renderObservatoryLog(target);
+  renderCodexReadout(target);
   renderCompileText();
   updatePassportButton();
   if(passportDialog.open){ renderPassportDom(); preparePassportBlob(); }
@@ -2671,6 +3279,7 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
   renderStats(3);
   setZoomT(1);
   prepareFinaleTargets();
+  prepareCodexDimensionIcon();
   stage.dataset.dimension = '3';
   updatePassportButton();
   if(shared){
