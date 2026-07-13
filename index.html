@@ -302,6 +302,263 @@ canvas#cv.dragging{cursor:grabbing}
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ---------- CODEX reality compiler ---------- */
+.stage::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  left:50%;
+  top:50%;
+  width:min(68vmin,680px);
+  aspect-ratio:1;
+  border:1px solid hsl(var(--hue) 84% 72% / .55);
+  border-radius:50%;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.42);
+  pointer-events:none;
+  box-shadow:0 0 72px hsl(var(--hue) 88% 60% / .16),inset 0 0 72px hsl(var(--hue) 88% 60% / .08);
+}
+.stage.dimension-pulse::after{animation:dimension-pulse .78s cubic-bezier(.2,.72,.2,1)}
+@keyframes dimension-pulse{
+  0%{opacity:.78;transform:translate(-50%,-50%) scale(.2)}
+  72%{opacity:.18}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.08)}
+}
+.compile-experience{
+  position:absolute;
+  inset:0;
+  z-index:8;
+  display:grid;
+  place-items:center;
+  padding:clamp(14px,3vw,34px);
+  background:
+    linear-gradient(90deg,hsl(220 54% 4% / .92),hsl(220 54% 4% / .34) 55%,hsl(220 54% 4% / .76)),
+    repeating-linear-gradient(0deg,transparent 0 3px,hsl(190 74% 72% / .025) 3px 4px);
+  backdrop-filter:blur(4px);
+  transition:opacity .45s,visibility .45s,background .55s;
+}
+.compile-experience.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.compile-panel{
+  position:relative;
+  width:min(720px,100%);
+  padding:clamp(22px,4vw,42px);
+  overflow:hidden;
+  border:1px solid hsl(190 72% 66% / .38);
+  clip-path:polygon(0 0,calc(100% - 34px) 0,100% 34px,100% 100%,34px 100%,0 calc(100% - 34px));
+  background:linear-gradient(145deg,hsl(221 49% 7% / .96),hsl(217 48% 10% / .88));
+  box-shadow:0 28px 90px hsl(220 80% 2% / .7),0 0 74px hsl(190 80% 52% / .08);
+  transition:width .5s,transform .5s,border-color .5s;
+}
+.compile-panel::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,hsl(var(--hue) 80% 62% / .08),transparent 34%),
+    repeating-linear-gradient(90deg,transparent 0 47px,hsl(190 80% 70% / .025) 47px 48px);
+}
+.compile-kicker,.compile-command,.compile-log,.compile-meta,.compile-actions button{
+  font-family:var(--mono);
+}
+.compile-kicker{
+  position:relative;
+  color:hsl(185 82% 69% / .82);
+  font-size:calc(var(--fs)*9px);
+  font-weight:600;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.compile-title{
+  position:relative;
+  margin-top:12px;
+  font-family:var(--mono);
+  font-size:clamp(34px,7vw,82px);
+  font-weight:600;
+  line-height:.92;
+  letter-spacing:-.055em;
+  text-wrap:balance;
+  text-shadow:0 0 42px hsl(var(--hue) 88% 62% / .2);
+}
+.compile-sub{
+  position:relative;
+  max-width:590px;
+  margin-top:18px;
+  color:hsl(216 24% 84% / .78);
+  font-size:calc(var(--fs)*12px);
+  line-height:1.75;
+}
+.compile-command{
+  position:relative;
+  margin-top:22px;
+  padding:12px 14px;
+  border-left:2px solid hsl(185 82% 62% / .72);
+  background:hsl(218 54% 4% / .7);
+  color:hsl(186 72% 78%);
+  font-size:calc(var(--fs)*11px);
+  letter-spacing:.025em;
+  overflow-wrap:anywhere;
+}
+.compile-command .prompt{color:var(--gold);margin-right:8px}
+.compile-progress{
+  position:relative;
+  height:3px;
+  margin-top:18px;
+  overflow:hidden;
+  background:hsl(218 36% 24% / .58);
+}
+.compile-progress span{
+  display:block;
+  width:0;
+  height:100%;
+  background:linear-gradient(90deg,hsl(180 72% 52%),hsl(var(--hue) 88% 68%),var(--gold));
+  box-shadow:0 0 18px hsl(var(--hue) 84% 62% / .55);
+}
+.compile-log{
+  position:relative;
+  min-height:78px;
+  margin-top:14px;
+  list-style:none;
+  color:hsl(205 42% 80% / .78);
+  font-size:calc(var(--fs)*10px);
+  line-height:1.65;
+}
+.compile-log li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compile-log li:last-child{color:var(--ink)}
+.compile-meta{
+  position:relative;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  color:var(--mut);
+  font-size:calc(var(--fs)*9px);
+  letter-spacing:.14em;
+}
+.compile-actions{
+  position:relative;
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-top:22px;
+}
+.compile-actions button{
+  border:1px solid var(--line);
+  border-radius:2px;
+  background:hsl(221 44% 10% / .92);
+  color:var(--ink);
+  padding:10px 15px;
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+.compile-actions button.primary{
+  background:hsl(185 54% 72%);
+  border-color:hsl(185 54% 72%);
+  color:hsl(220 58% 5%);
+  font-weight:700;
+}
+.compile-actions button:hover{border-color:var(--gold-dim);color:var(--gold)}
+.compile-actions button.primary:hover{color:hsl(220 58% 5%);background:var(--gold);border-color:var(--gold)}
+.compile-actions button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.compile-experience.is-intro .compile-progress,
+.compile-experience.is-intro .compile-log,
+.compile-experience.is-intro .compile-meta{display:none}
+.compile-experience.is-running{place-items:end start;background:hsl(220 54% 4% / .22);backdrop-filter:blur(1px)}
+.compile-experience.is-running .compile-panel{width:min(570px,100%);padding:22px 24px}
+.compile-experience.is-running .compile-title{font-size:clamp(25px,4.4vw,46px)}
+.compile-experience.is-running .compile-sub{display:none}
+.compile-experience.is-success{place-items:end end;background:linear-gradient(90deg,transparent 0 35%,hsl(220 54% 4% / .48));backdrop-filter:blur(1px)}
+.compile-experience.is-success .compile-panel{width:min(410px,100%);padding:18px 20px;border-color:hsl(42 76% 62% / .56)}
+.compile-experience.is-success .compile-title{margin-top:7px;font-size:clamp(27px,4vw,42px);color:var(--gold)}
+.compile-experience.is-success .compile-sub{margin-top:8px;font-size:calc(var(--fs)*9px);line-height:1.5}
+.compile-experience.is-success .compile-command{display:none}
+.compile-experience.is-success .compile-progress{margin-top:10px}
+.compile-experience.is-success .compile-log{min-height:0;margin-top:9px;font-size:calc(var(--fs)*8px);line-height:1.45}
+.compile-experience.is-success .compile-actions{margin-top:10px;gap:6px}
+.compile-experience.is-success .compile-actions button{padding:8px 10px;font-size:calc(var(--fs)*8px)}
+.finale-word{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:72%;
+  transform:translate(-50%,18px);
+  opacity:0;
+  color:var(--ink);
+  font-family:var(--mono);
+  font-size:clamp(32px,6vw,82px);
+  font-weight:600;
+  letter-spacing:.34em;
+  text-indent:.34em;
+  text-shadow:0 0 38px hsl(185 82% 68% / .42);
+  transition:opacity .5s,transform .5s;
+  pointer-events:none;
+}
+.finale-word.show{opacity:.9;transform:translate(-50%,0)}
+.stage.compile-active .observatory-log,
+.stage.compile-active .stage-tools,
+.stage.compile-active .hint{opacity:.18}
+.breach-overlay{
+  position:absolute;
+  z-index:10;
+  inset:0;
+  display:grid;
+  place-items:center;
+  opacity:0;
+  visibility:hidden;
+  background:repeating-linear-gradient(0deg,hsl(350 90% 8% / .18) 0 2px,transparent 2px 8px);
+  pointer-events:none;
+}
+.breach-overlay.show{opacity:1;visibility:visible}
+.breach-copy{text-align:center;font-family:var(--mono);text-shadow:3px 0 hsl(180 90% 55% / .45),-3px 0 hsl(350 90% 58% / .5)}
+.breach-code{font-size:clamp(25px,5vw,62px);font-weight:700;letter-spacing:.06em;color:hsl(350 82% 68%)}
+.breach-detail{margin-top:10px;font-size:calc(var(--fs)*11px);letter-spacing:.12em;color:var(--ink)}
+#app.reality-breach .stage{animation:reality-breach .12s steps(2,end) infinite}
+#app.reality-breach header,#app.reality-breach footer,#app.reality-breach .rail{filter:hue-rotate(135deg) contrast(1.35)}
+@keyframes reality-breach{
+  0%{transform:translate(0);clip-path:inset(0)}
+  35%{transform:translate(3px,-1px);clip-path:inset(7% 0 12% 0)}
+  70%{transform:translate(-2px,2px);clip-path:inset(24% 0 3% 0)}
+}
+
+/* ---------- dimensional passport ---------- */
+.stage-tools button.passport{
+  height:auto;
+  max-width:132px;
+  padding:7px 9px;
+  font-size:calc(var(--fs)*8px);
+  line-height:1.35;
+  letter-spacing:.1em;
+  color:var(--gold);
+}
+#passportDialog{
+  width:min(860px,calc(100% - 28px));
+  max-width:none;
+  max-height:calc(100dvh - 28px);
+  margin:auto;
+  padding:0;
+  overflow:auto;
+  color:var(--ink);
+  background:linear-gradient(150deg,#08101e,#0d1525);
+  border:1px solid hsl(190 54% 62% / .4);
+  border-radius:2px;
+  box-shadow:0 34px 100px #000;
+}
+#passportDialog::backdrop{background:hsl(220 62% 3% / .82);backdrop-filter:blur(8px)}
+.passport-shell{padding:clamp(18px,3vw,30px)}
+.passport-head{display:flex;justify-content:space-between;gap:18px;align-items:start}
+.passport-kicker{font-family:var(--mono);font-size:calc(var(--fs)*9px);letter-spacing:.25em;color:var(--gold)}
+.passport-head h2{margin-top:7px;font-family:var(--serif);font-size:clamp(24px,4vw,42px);font-weight:600}
+.passport-close{font:16px var(--mono);padding:7px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+#passportCanvas{display:block;width:100%;height:auto;margin-top:20px;border:1px solid var(--line);background:#050914}
+.passport-facts{display:flex;flex-wrap:wrap;gap:9px 22px;margin-top:14px;font:calc(var(--fs)*10px)/1.7 var(--mono);color:var(--mut)}
+.passport-facts strong{color:var(--ink);font-weight:600}
+.passport-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.passport-actions button{font:calc(var(--fs)*10px) var(--mono);letter-spacing:.08em;padding:9px 13px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.passport-actions button:hover{border-color:var(--gold-dim);color:var(--gold)}
+.passport-actions button:focus-visible,.passport-close:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.passport-actions button:disabled{opacity:.42;cursor:wait}
+.passport-status{min-height:1.6em;margin-top:12px;font:calc(var(--fs)*9px)/1.6 var(--mono);color:var(--gold)}
+
 /* stage tools (zoom + boost) */
 .stage-tools{
   position:absolute;
@@ -660,6 +917,17 @@ input[type=range]::-moz-range-thumb{
   }
   .observatory-label{font-size:calc(var(--fs)*7px)}
   .observatory-text{font-size:calc(var(--fs)*8px);line-height:1.5}
+  .compile-experience{padding:10px}
+  .compile-panel,.compile-experience.is-running .compile-panel{padding:18px 16px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
+  .compile-title{font-size:clamp(29px,11vw,48px)}
+  html[data-lang="ja"] .compile-title{font-size:clamp(27px,9vw,38px);letter-spacing:-.08em;white-space:nowrap}
+  .compile-sub{margin-top:10px;font-size:calc(var(--fs)*10px);line-height:1.55}
+  .compile-command{margin-top:13px;padding:9px 10px;font-size:calc(var(--fs)*8px)}
+  .compile-log{min-height:58px;font-size:calc(var(--fs)*8px);line-height:1.45}
+  .compile-actions{margin-top:12px;gap:6px}
+  .compile-actions button{padding:8px 9px;font-size:calc(var(--fs)*8px)}
+  .finale-word{top:73%;font-size:clamp(27px,11vw,52px)}
+  .passport-shell{padding:15px}
   .hint{
     left:112px;
     right:12px;
@@ -669,9 +937,10 @@ input[type=range]::-moz-range-thumb{
   }
 }
 @media (prefers-reduced-motion:reduce){
-  .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.toast{transition:none}
+  .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.toast,.compile-experience,.compile-panel,.finale-word{transition:none}
   .cosmic-field::before,.cosmic-field::after{animation:none}
   .ghost-slot button.ghost12.wiggle{animation:none}
+  .stage.dimension-pulse::after,#app.reality-breach .stage{animation:none}
 }
 </style>
 </head>
@@ -690,6 +959,7 @@ input[type=range]::-moz-range-thumb{
         <button id="fontDn" aria-label="Smaller text">A−</button><button id="fontUp" aria-label="Larger text">A＋</button>
       </div>
       <button class="ctl" id="btnRotate" aria-label="⏸ Pause" aria-pressed="true">⏸ Pause</button>
+      <button class="ctl" id="btnTour" aria-label="Run reality compiler">RUN BUILD</button>
       <button class="ctl" id="btnReset" aria-label="Reset view">Reset view</button>
     </div>
   </header>
@@ -710,6 +980,7 @@ input[type=range]::-moz-range-thumb{
         <button id="zoomOut" aria-label="Zoom out">−</button>
         <div class="zoom-val" id="zoomVal">×1.0</div>
         <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
+        <button id="btnPassport" class="passport" aria-label="Open dimensional passport">PASSPORT 1/11</button>
       </div>
       <div class="observatory-log" role="note">
         <span class="observatory-label" id="logLabel">OBSERVATORY LOG · 03</span>
@@ -717,6 +988,30 @@ input[type=range]::-moz-range-thumb{
       </div>
       <div class="hint" id="hint">DRAG — rotate · WHEEL — zoom · SLIDER — dimension</div>
       <div class="toast" id="toast" role="status"></div>
+      <div class="finale-word" id="finaleWord" aria-hidden="true">CODEX</div>
+      <div class="compile-experience is-intro" id="compileExperience" role="dialog" aria-modal="true" aria-labelledby="compileTitle">
+        <div class="compile-panel">
+          <div class="compile-kicker" id="compileKicker">CODEX REALITY COMPILER · EXPERIMENT 11</div>
+          <h2 class="compile-title" id="compileTitle">COMPILE<br>REALITY</h2>
+          <p class="compile-sub" id="compileSub">Eleven dimensions. One build. Zero guarantees that causality survives.</p>
+          <div class="compile-command"><span class="prompt">$</span>codex build reality --dimensions=11</div>
+          <div class="compile-progress" aria-hidden="true"><span id="compileBar"></span></div>
+          <ol class="compile-log" id="compileLog" aria-hidden="true"></ol>
+          <div class="compile-meta"><span id="compileDim">READY</span><span id="compilePct">0%</span></div>
+          <div class="compile-actions">
+            <button class="primary" id="btnCompile" aria-label="Run build">RUN BUILD</button>
+            <button id="btnSound" aria-label="Toggle sound" aria-pressed="false">SOUND OFF</button>
+            <button id="btnManual" aria-label="Explore manually">EXPLORE MANUALLY</button>
+            <button id="btnCompilePassport" aria-label="Open expedition card" hidden>EXPEDITION CARD</button>
+          </div>
+        </div>
+      </div>
+      <div class="breach-overlay" id="breachOverlay" aria-hidden="true">
+        <div class="breach-copy">
+          <div class="breach-code" id="breachCode">ERR_THEORY_NOT_FOUND</div>
+          <div class="breach-detail" id="breachDetail">Causality is a missing peer dependency.</div>
+        </div>
+      </div>
     </section>
 
     <aside class="rail" aria-live="polite">
@@ -762,6 +1057,30 @@ input[type=range]::-moz-range-thumb{
   </footer>
 </div>
 
+<dialog id="passportDialog" aria-labelledby="passportTitle">
+  <div class="passport-shell">
+    <div class="passport-head">
+      <div>
+        <div class="passport-kicker" id="passportKicker">CODEX // DIMENSIONAL EXPEDITION</div>
+        <h2 id="passportTitle">11D EXPEDITION CARD</h2>
+      </div>
+      <button class="passport-close" id="passportClose" aria-label="Close">×</button>
+    </div>
+    <canvas id="passportCanvas" width="1200" height="675" aria-hidden="true"></canvas>
+    <div class="passport-facts">
+      <span><strong id="passportReached">ELEVENTH DIMENSION REACHED</strong></span>
+      <span id="passportObserved">Dimensions observed: 1/11</span>
+      <span id="passportIdText">EXPEDITION ID · CX-11D-00000000</span>
+    </div>
+    <div class="passport-actions">
+      <button id="passportShare" aria-label="Share card" disabled>SHARE CARD</button>
+      <button id="passportSave" aria-label="Save PNG" disabled>SAVE PNG</button>
+      <button id="passportCopy" aria-label="Copy link">COPY LINK</button>
+    </div>
+    <div class="passport-status" id="passportStatus" role="status">Preparing local transmission…</div>
+  </div>
+</dialog>
+
 <script>
 'use strict';
 /* ============================================================
@@ -771,9 +1090,11 @@ input[type=range]::-moz-range-thumb{
    ============================================================ */
 
 const $ = id => document.getElementById(id);
+const app = $('app');
 const stage = document.querySelector('.stage');
 const canvas = $('cv');
 const ctx = canvas.getContext('2d');
+const logoPath = document.querySelector('.ai-watermark path');
 
 const MAXD = 11;
 const PERSP = 2.8;               // perspective eye distance (post-normalization coords)
@@ -827,6 +1148,81 @@ const UI = {
     toastAll:'全11次元を踏破！ もう平面の暮らしには戻れません。',
     toastReset:'視点をリセットしました。宇宙そのものは動かしていません。',
     toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
+  },
+};
+
+const EXPERIENCE = {
+  en: {
+    kicker:'CODEX REALITY COMPILER · EXPERIMENT 11',
+    introTitle:'COMPILE REALITY',
+    introSub:'Eleven dimensions. One build. Zero guarantees that causality survives.',
+    run:'RUN BUILD', manual:'EXPLORE MANUALLY', skip:'SKIP TO 11D', abort:'ABORT BUILD',
+    soundOn:'SOUND ON', soundOff:'SOUND OFF', enter:'ENTER OBSERVATORY', rerun:'RUN AGAIN',
+    card:'EXPEDITION CARD', ready:'READY', compiling:'COMPILING REALITY',
+    successTitle:'BUILD SUCCEEDED',
+    successSub:'Reality is now 11-dimensional. Causality remains in beta.',
+    complete:'[OK] REALITY COMPILED. Coffee remains 3D.',
+    phases:[
+      '[01D] Axis linked.',
+      '[02D] Plane rasterized. Depth still pending.',
+      '[03D] Legacy reality detected. Coffee stable.',
+      '[04D] Time channel opened yesterday.',
+      '[05D] Extra axis found under the vacuum.',
+      '[06D] Hidden geometry folded. Door missing.',
+      '[07D] Exotic sphere accepted reluctantly.',
+      '[08D] E₈ alignment perfect. Furniture disagrees.',
+      '[09D] Strings tuned. Six axes remain backstage.',
+      '[10D] Five theory branches merged.',
+      '[11D] Branes mounted. M unresolved.',
+    ],
+    verifying:'[VERIFY] Causality within tolerance. Linking 2,048 vertices…',
+    tourLabel:'Run reality compiler', passportLabel:'Open dimensional passport',
+    passportTitle:'11D EXPEDITION CARD', reached:'ELEVENTH DIMENSION REACHED',
+    observed:n => 'Dimensions observed: ' + n + '/11', id:'EXPEDITION ID',
+    share:'SHARE CARD', save:'SAVE PNG', copy:'COPY LINK', close:'Close',
+    preparing:'Preparing local transmission…', readyShare:'Ready for transmission.',
+    copied:'Link copied. This expedition can now be reproduced.',
+    shared:'Shared beyond spacetime.', saved:'PNG saved to local reality.',
+    shareUnavailable:'Sharing is unavailable here. Save the PNG or copy the link.',
+    passportLocked:'Compile or navigate to 11D to unlock the expedition card.',
+    breachCode:'ERR_THEORY_NOT_FOUND', breachDetail:'Causality is a missing peer dependency.',
+    breachWarmup:['AUTH 1/3 · 12D permit requested.','AUTH 2/3 · Request routed through an inaccessible dimension.'],
+  },
+  ja: {
+    kicker:'CODEX 現実コンパイラ · 実験11',
+    introTitle:'現実をコンパイル',
+    introSub:'11の次元、1回のビルド。因果律が生き残る保証はありません。',
+    run:'ビルド実行', manual:'手動で観測', skip:'11次元へスキップ', abort:'ビルド中止',
+    soundOn:'サウンド ON', soundOff:'サウンド OFF', enter:'観測室へ入る', rerun:'もう一度実行',
+    card:'遠征カード', ready:'待機中', compiling:'現実をコンパイル中',
+    successTitle:'ビルド成功',
+    successSub:'現実は11次元になりました。因果律は引き続きベータ版です。',
+    complete:'[完了] 現実をコンパイル。コーヒーは3次元のままです。',
+    phases:[
+      '[01D] 軸を接続。',
+      '[02D] 平面を生成。奥行きは保留中。',
+      '[03D] 旧式の現実を検出。コーヒーは安定。',
+      '[04D] 時間チャネルを昨日、開放。',
+      '[05D] 真空の下から余剰軸を発見。',
+      '[06D] 不可視形状を折り畳み。玄関は未発見。',
+      '[07D] エキゾチック球面を渋々承認。',
+      '[08D] E₈整列完了。家具側から異議。',
+      '[09D] 弦を調律。6本の軸は舞台裏。',
+      '[10D] 5本の理論ブランチをマージ。',
+      '[11D] ブレーン搭載。Mの意味は未定。',
+    ],
+    verifying:'[検証] 因果律は許容範囲。2,048頂点をリンク中…',
+    tourLabel:'現実コンパイラを実行', passportLabel:'次元パスポートを開く',
+    passportTitle:'11次元遠征カード', reached:'11次元到達',
+    observed:n => '観測済み次元: ' + n + '/11', id:'遠征ID',
+    share:'カードを共有', save:'PNGを保存', copy:'リンクをコピー', close:'閉じる',
+    preparing:'端末内で送信準備中…', readyShare:'送信準備完了。',
+    copied:'リンクをコピーしました。同じ遠征を再現できます。',
+    shared:'時空の外へ共有しました。', saved:'PNGをローカル現実へ保存しました。',
+    shareUnavailable:'この環境では共有できません。PNG保存かリンクコピーを選んでください。',
+    passportLocked:'11次元までコンパイルまたは移動すると、遠征カードを解禁できます。',
+    breachCode:'ERR_THEORY_NOT_FOUND', breachDetail:'因果律が依存関係から見つかりません。',
+    breachWarmup:['認証 1/3 · 12次元の観測許可を申請。','認証 2/3 · 申請を到達不能な次元へ転送。'],
   },
 };
 
@@ -997,6 +1393,15 @@ let spinVel = 0;                // hyperspin burst velocity (double-click)
 const YAW0 = 0.55, PITCH0 = 0.32, ROT0 = 7.0;
 const FS_STEPS = [1, 1.12, 1.25, 1.4, 1.6];
 let fsIndex = 2;                // default: two steps above the original scale
+let compileState = 'intro';
+let compileElapsed = 0, compileStep = -1, compileVerifyLogged = false;
+let compileNavigating = false;
+let finaleMix = 0, finaleTarget = 0;
+let breachActive = false, breachElapsed = 0, breachCount = 0;
+let soundEnabled = false, audioCtx = null, audioMaster = null;
+const activeAudioNodes = new Set();
+let passportBlob = null, passportUrl = '', passportWasRotating = false;
+let expeditionSeed = 0;
 
 /* ---------- canvas ---------- */
 let W = 0, H = 0, DPR = 1;
@@ -1108,6 +1513,115 @@ function drawSpace(D){
   ctx.restore();
 }
 
+/* ---------- dimension phenomena + 11D CODEX finale ---------- */
+const finaleTargets = new Float32Array(2048 * 2);
+let finaleTargetsReady = false;
+function prepareFinaleTargets(){
+  try{
+    const length = logoPath.getTotalLength();
+    for(let i = 0; i < 2048; i++){
+      const p = logoPath.getPointAtLength(length * i / 2048);
+      finaleTargets[i * 2] = (p.x - 12) / 24;
+      finaleTargets[i * 2 + 1] = (p.y - 12) / 24;
+    }
+    finaleTargetsReady = true;
+  }catch(err){
+    for(let i = 0; i < 2048; i++){
+      const a = i / 2048 * Math.PI * 2;
+      const r = .34 + .08 * Math.sin(a * 6);
+      finaleTargets[i * 2] = Math.cos(a) * r;
+      finaleTargets[i * 2 + 1] = Math.sin(a) * r;
+    }
+    finaleTargetsReady = true;
+  }
+}
+const smoothstep = x => x * x * (3 - 2 * x);
+
+function drawDimensionPhenomenon(D, hue){
+  if(D < 4 || finaleMix > .78) return;
+  const active = compileState === 'running';
+  const alpha = active ? .31 : .105;
+  const t = reduced ? 0 : spaceTime;
+  const cx = W * .5, cy = H * .5;
+  const base = Math.min(W, H);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = `hsla(${hue + 18},82%,70%,${alpha})`;
+  ctx.fillStyle = `hsla(${hue + 28},88%,76%,${alpha * 1.35})`;
+  ctx.lineWidth = active ? 1.15 : .7;
+
+  if(D === 4){
+    for(let i = 0; i < 3; i++){
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, base * (.22 + i * .055), base * (.08 + i * .026), t * .05 + i * 1.04, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }else if(D === 6){
+    ctx.translate(cx, cy);
+    ctx.rotate(t * .035);
+    for(let i = 0; i < 6; i++){
+      ctx.save();
+      ctx.rotate(i * Math.PI / 3);
+      ctx.beginPath();
+      ctx.ellipse(base * .09, 0, base * .18, base * .055, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }else if(D === 8){
+    ctx.beginPath();
+    for(let ring = 1; ring <= 3; ring++){
+      const count = ring * 16;
+      const r = base * (.075 + ring * .06);
+      for(let i = 0; i < count; i++){
+        const a = i / count * Math.PI * 2 + t * .018 * (ring % 2 ? 1 : -1);
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r;
+        ctx.moveTo(x + 1.15, y);
+        ctx.arc(x, y, 1.15, 0, Math.PI * 2);
+      }
+    }
+    ctx.fill();
+  }else if(D >= 11){
+    ctx.globalAlpha = active ? .56 : .32;
+    for(let band = -2; band <= 2; band++){
+      ctx.beginPath();
+      for(let i = 0; i <= 72; i++){
+        const x = W * i / 72;
+        const y = cy + band * base * .055 + Math.sin(i * .24 + t * .75 + band) * base * .032;
+        if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawFinalePointCloud(g, hue){
+  if(finaleMix <= .001 || !finaleTargetsReady) return;
+  const mix = smoothstep(clamp(finaleMix, 0, 1));
+  const count = Math.min(g.V, W < 600 ? 640 : 2048);
+  const size = Math.min(W, H) * .56;
+  const cy = H * .47;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = .3 + mix * .68;
+  ctx.fillStyle = `hsl(${hue + 28} 88% 82%)`;
+  ctx.beginPath();
+  for(let i = 0; i < count; i++){
+    const vi = Math.floor(i * g.V / count);
+    const ti = Math.floor(i * 2048 / count);
+    const tx = W * .5 + finaleTargets[ti * 2] * size;
+    const ty = cy + finaleTargets[ti * 2 + 1] * size;
+    const x = g.sx[vi] + (tx - g.sx[vi]) * mix;
+    const y = g.sy[vi] + (ty - g.sy[vi]) * mix;
+    const r = 1 + mix * 1.05;
+    ctx.moveTo(x + r, y);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
 /* ---------- transform pipeline ---------- */
 const P = new Float64Array(MAXD);   // work vector
 const NB = 8;                       // depth buckets
@@ -1159,7 +1673,9 @@ function draw(){
   ctx.clearRect(0, 0, W, H);
 
   const D = Math.min(MAXD, Math.max(1, Math.ceil(dcur - 1e-6)));
+  const hue = 160 + (dcur - 1) * 18;
   drawSpace(D);
+  drawDimensionPhenomenon(D, hue);
   const g = geo(D);
   const pl = planes(D);
 
@@ -1188,10 +1704,10 @@ function draw(){
   // render at the brightest style instead of the dimmest bucket
   const flat = (fmax - fmin) < 1e-6;
 
-  const hue = 160 + (dcur - 1) * 18;
   const nEdges = g.edges.length;
   const alphaScale = Math.max(0.1, Math.min(1, 9 / Math.sqrt(nEdges)));
-  const edgeAlpha = alpha => boost ? Math.min(1, alpha * 3.2) : alpha;
+  const sceneFade = 1 - finaleMix * .92;
+  const edgeAlpha = alpha => (boost ? Math.min(1, alpha * 3.2) : alpha) * sceneFade;
   let widthAdd = 0;
   if(boost){
     widthAdd = 0.45;
@@ -1272,7 +1788,8 @@ function draw(){
   }
 
   ctx.globalCompositeOperation = 'source-over';
-  drawAxes(D, cs, sn, pl, axisScale);
+  if(finaleMix < .76) drawAxes(D, cs, sn, pl, axisScale);
+  drawFinalePointCloud(g, hue);
 }
 
 /* bottom-left: mini compass showing each axis direction */
@@ -1310,6 +1827,8 @@ let lastT = performance.now();
 function frame(now){
   const dt = Math.min((now - lastT) / 1000, 0.1);
   lastT = now;
+  updateCompile(dt);
+  updateBreach(dt);
   if(autoRotate) rotT += dt;
   if(autoRotate && !reduced) spaceTime += dt;
   // hyperspin burst decays exponentially
@@ -1373,6 +1892,276 @@ const TWELVE_MESSAGES = {
   ],
 };
 
+/* ---------- CODEX reality compiler ---------- */
+const compileExperience = $('compileExperience');
+const compileTitle = $('compileTitle');
+const compileSub = $('compileSub');
+const compileLog = $('compileLog');
+const compileBar = $('compileBar');
+const compileDim = $('compileDim');
+const compilePct = $('compilePct');
+const btnCompile = $('btnCompile');
+const btnManual = $('btnManual');
+const btnSound = $('btnSound');
+const btnCompilePassport = $('btnCompilePassport');
+
+function renderCompileLogs(){
+  const x = EXPERIENCE[lang];
+  const entries = [];
+  if(compileStep >= 0){
+    const first = Math.max(0, compileStep - 2);
+    for(let i = first; i <= Math.min(compileStep, 10); i++) entries.push(x.phases[i]);
+  }
+  if(compileVerifyLogged) entries.push(x.verifying);
+  if(compileState === 'success') entries.push(x.complete);
+  compileLog.replaceChildren(...entries.slice(-4).map(line => {
+    const li = document.createElement('li');
+    li.textContent = line;
+    return li;
+  }));
+}
+
+function renderCompileText(){
+  const x = EXPERIENCE[lang];
+  $('compileKicker').textContent = x.kicker;
+  $('btnTour').textContent = x.run;
+  $('btnTour').setAttribute('aria-label', x.tourLabel);
+  $('btnPassport').setAttribute('aria-label', x.passportLabel);
+  btnSound.textContent = soundEnabled ? x.soundOn : x.soundOff;
+  btnSound.setAttribute('aria-label', soundEnabled ? x.soundOn : x.soundOff);
+  btnSound.setAttribute('aria-pressed', String(soundEnabled));
+  if(compileState === 'intro'){
+    compileTitle.textContent = x.introTitle;
+    compileSub.textContent = x.introSub;
+    btnCompile.textContent = x.run;
+    btnManual.textContent = x.manual;
+    btnCompilePassport.hidden = true;
+    compileDim.textContent = x.ready;
+  }else if(compileState === 'running'){
+    compileTitle.textContent = x.compiling;
+    compileSub.textContent = x.introSub;
+    btnCompile.textContent = x.skip;
+    btnManual.textContent = x.abort;
+    btnCompilePassport.hidden = true;
+  }else if(compileState === 'success'){
+    compileTitle.textContent = x.successTitle;
+    compileSub.textContent = x.successSub;
+    btnCompile.textContent = x.enter;
+    btnManual.textContent = x.rerun;
+    btnCompilePassport.textContent = x.card;
+    btnCompilePassport.hidden = false;
+    compileDim.textContent = '11D · M-THEORY';
+  }
+  btnCompile.setAttribute('aria-label', btnCompile.textContent);
+  btnManual.setAttribute('aria-label', btnManual.textContent);
+  btnCompilePassport.setAttribute('aria-label', x.card);
+  renderCompileLogs();
+}
+
+function setCompileSurface(mode){
+  compileExperience.className = 'compile-experience is-' + mode;
+  compileExperience.setAttribute('aria-hidden', String(mode === 'hidden'));
+  stage.classList.toggle('compile-active', mode === 'running' || mode === 'success');
+  app.classList.toggle('is-compiling', mode === 'running');
+}
+
+function pulseDimension(){
+  if(reduced) return;
+  stage.classList.remove('dimension-pulse');
+  void stage.offsetWidth;
+  stage.classList.add('dimension-pulse');
+}
+
+function ensureAudio(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return Promise.resolve(false);
+  if(!audioCtx){
+    audioCtx = new AC();
+    audioMaster = audioCtx.createGain();
+    audioMaster.gain.value = .045;
+    audioMaster.connect(audioCtx.destination);
+  }
+  return audioCtx.resume().then(() => true, () => false);
+}
+
+function playTone(freq, duration = .24, gain = .34, when = 0){
+  if(!soundEnabled || !audioCtx || !audioMaster) return;
+  const start = audioCtx.currentTime + when;
+  const osc = audioCtx.createOscillator();
+  const amp = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, start);
+  amp.gain.setValueAtTime(.0001, start);
+  amp.gain.exponentialRampToValueAtTime(gain, start + .025);
+  amp.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  osc.connect(amp).connect(audioMaster);
+  activeAudioNodes.add(osc);
+  osc.onended = () => activeAudioNodes.delete(osc);
+  osc.start(start);
+  osc.stop(start + duration + .03);
+}
+function playDimensionTone(n){ playTone(96 * 2 ** ((n + 2) / 12), .2, .24); }
+function playSuccessChord(){
+  [220,277.18,329.63,440].forEach((f, i) => playTone(f, .72, .2, i * .055));
+}
+function stopAudio(){
+  activeAudioNodes.forEach(node => { try{ node.stop(); }catch(err){ /* already stopped */ } });
+  activeAudioNodes.clear();
+}
+
+function compileSetDimension(n, instant = false){
+  compileNavigating = true;
+  if(n !== target) setDimension(n, false);
+  if(instant) dcur = n;
+  compileNavigating = false;
+}
+
+function startCompile(){
+  if($('passportDialog').open) $('passportDialog').close();
+  breachActive = false;
+  app.classList.remove('reality-breach');
+  $('breachOverlay').classList.remove('show');
+  compileState = 'running';
+  compileElapsed = 0;
+  compileStep = 0;
+  compileVerifyLogged = false;
+  finaleMix = 0;
+  finaleTarget = 0;
+  $('finaleWord').classList.remove('show');
+  compileBar.style.width = '0%';
+  compilePct.textContent = '0%';
+  setCompileSurface('running');
+  compileSetDimension(1, true);
+  rotT = ROT0;
+  yaw = YAW0;
+  pitch = PITCH0;
+  setZoomT(1);
+  autoRotate = !reduced;
+  syncRotateBtn();
+  renderCompileText();
+  playDimensionTone(1);
+  if(reduced) skipCompile();
+}
+
+function updateCompile(dt){
+  if(compileState === 'running'){
+    compileElapsed += dt;
+    const nextStep = Math.min(10, Math.floor(compileElapsed / .75));
+    while(compileStep < nextStep){
+      compileStep += 1;
+      compileSetDimension(compileStep + 1);
+      playDimensionTone(compileStep + 1);
+      renderCompileLogs();
+    }
+    const progress = clamp(compileElapsed / 10.8, 0, 1);
+    compileBar.style.width = (progress * 100).toFixed(1) + '%';
+    compilePct.textContent = Math.round(progress * 100) + '%';
+    compileDim.textContent = String(Math.min(11, compileStep + 1)).padStart(2, '0') + 'D';
+    if(compileElapsed >= 8.35){
+      if(!compileVerifyLogged){ compileVerifyLogged = true; renderCompileLogs(); }
+      finaleMix = clamp((compileElapsed - 8.35) / 2.15, 0, 1);
+      $('finaleWord').classList.toggle('show', finaleMix > .72);
+    }
+    if(compileElapsed >= 10.8) completeCompile();
+  }else if(compileState !== 'success' && finaleMix > .001){
+    finaleMix += (finaleTarget - finaleMix) * Math.min(1, dt * 5);
+    if(finaleMix < .003) finaleMix = 0;
+  }
+}
+
+function markCompiledDimensions(){
+  for(let i = 1; i <= MAXD; i++){
+    visited.add(i);
+    if(tickBtns[i - 1]) tickBtns[i - 1].classList.add('visited');
+  }
+  allVisitedToasted = true;
+  updatePassportButton();
+}
+
+function completeCompile(){
+  compileSetDimension(11, true);
+  markCompiledDimensions();
+  compileState = 'success';
+  finaleMix = 1;
+  finaleTarget = 1;
+  compileBar.style.width = '100%';
+  compilePct.textContent = '100%';
+  $('finaleWord').classList.add('show');
+  setCompileSurface('success');
+  renderCompileText();
+  playSuccessChord();
+  try{ sessionStorage.setItem('codex-compile-reality-v2', 'seen'); }catch(err){ /* sandboxed storage */ }
+}
+
+function skipCompile(){
+  compileStep = 10;
+  compileVerifyLogged = true;
+  compileElapsed = 10.8;
+  completeCompile();
+}
+
+function enterObservatory(){
+  compileState = 'hidden';
+  finaleTarget = 0;
+  $('finaleWord').classList.remove('show');
+  setCompileSurface('hidden');
+  stopAudio();
+  slider.focus({preventScroll:true});
+}
+
+btnCompile.addEventListener('click', () => {
+  if(compileState === 'intro') startCompile();
+  else if(compileState === 'running') skipCompile();
+  else if(compileState === 'success') enterObservatory();
+});
+btnManual.addEventListener('click', () => {
+  if(compileState === 'success') startCompile();
+  else enterObservatory();
+});
+$('btnTour').addEventListener('click', startCompile);
+btnCompilePassport.addEventListener('click', openPassport);
+btnSound.addEventListener('click', async () => {
+  soundEnabled = !soundEnabled;
+  if(soundEnabled && !(await ensureAudio())) soundEnabled = false;
+  if(!soundEnabled) stopAudio();
+  renderCompileText();
+});
+
+function startBreach(){
+  if(compileState !== 'hidden') enterObservatory();
+  compileSetDimension(11, true);
+  finaleMix = 0;
+  breachActive = true;
+  breachElapsed = 0;
+  spinVel = reduced ? 0 : 26;
+  app.classList.add('reality-breach');
+  $('breachOverlay').classList.add('show');
+  const x = EXPERIENCE[lang];
+  $('breachCode').textContent = x.breachCode;
+  $('breachDetail').textContent = x.breachDetail;
+  showToast(x.breachDetail, 3000);
+  if(soundEnabled){
+    playTone(110, .65, .28);
+    playTone(116.5, .65, .24, .04);
+    playTone(77.8, .8, .24, .08);
+  }
+}
+function updateBreach(dt){
+  if(!breachActive) return;
+  breachElapsed += dt;
+  if(breachElapsed >= 1.55){
+    breachActive = false;
+    breachCount = 0;
+    app.classList.remove('reality-breach');
+    $('breachOverlay').classList.remove('show');
+    ghost12.style.transform = '';
+    compileNavigating = true;
+    setDimension(3, false);
+    compileNavigating = false;
+    showToast(lang === 'ja' ? '現実を最後に安定していた3次元へロールバックしました。' : 'Reality rolled back to the last stable 3D build.', 3600);
+  }
+}
+
 /* ---------- UI ---------- */
 const slider = $('slider');
 const ticksBox = $('ticks');
@@ -1422,10 +2211,12 @@ function setDimension(n, fromSlider){
   n = clamp(n | 0, 1, MAXD);
   if(!fromSlider) slider.value = n;
   if(n === target){
-    if(!fromSlider) showToast(UI[lang].sameDimension(n), 2600);
+    if(!fromSlider && !compileNavigating) showToast(UI[lang].sameDimension(n), 2600);
     return;
   }
   target = n;
+  stage.dataset.dimension = String(n);
+  pulseDimension();
   renderObservatoryLog(n);
 
   // fade out, swap, fade in — cancel any pending swap so rapid slider
@@ -1448,7 +2239,8 @@ function setDimension(n, fromSlider){
   // dimension passport: mark visited, celebrate a full sweep once
   visited.add(n);
   tickBtns[n - 1].classList.add('visited');
-  if(visited.size === MAXD && !allVisitedToasted){
+  updatePassportButton();
+  if(visited.size === MAXD && !allVisitedToasted && !compileNavigating){
     allVisitedToasted = true;
     showToast(UI[lang].toastAll, 4600);
   }
@@ -1463,25 +2255,35 @@ for(let i = 1; i <= MAXD; i++){
   const b = document.createElement('button');
   b.textContent = i;
   if(i === 3) b.classList.add('on', 'visited');
-  b.addEventListener('click', () => setDimension(i, false));
+  b.addEventListener('click', () => {
+    if(compileState === 'running') enterObservatory();
+    setDimension(i, false);
+  });
   ticksBox.appendChild(b);
   tickBtns.push(b);
 }
 const ghost12 = document.createElement('button');
 ghost12.textContent = '12';
 ghost12.className = 'ghost12';
-let twelveMessageIndex = 0;
 ghost12.addEventListener('click', () => {
   ghost12.classList.remove('wiggle');
   void ghost12.offsetWidth;          // restart the animation
   ghost12.classList.add('wiggle');
-  const messages = TWELVE_MESSAGES[lang];
-  showToast(messages[twelveMessageIndex % messages.length]);
-  twelveMessageIndex += 1;
+  breachCount += 1;
+  if(breachCount < 3){
+    ghost12.style.transform = breachCount === 1 ? 'translate(-8px,-3px)' : 'translate(9px,3px)';
+    showToast(EXPERIENCE[lang].breachWarmup[breachCount - 1], 3000);
+  }else{
+    ghost12.style.transform = '';
+    startBreach();
+  }
 });
 ghostSlot.appendChild(ghost12);
 
-slider.addEventListener('input', () => setDimension(+slider.value, true));
+slider.addEventListener('input', () => {
+  if(compileState === 'running') enterObservatory();
+  setDimension(+slider.value, true);
+});
 
 /* rotation pause / resume + view reset */
 const btnRotate = $('btnRotate');
@@ -1517,6 +2319,216 @@ function setBoost(v){
   btnBoost.setAttribute('aria-pressed', String(v));
 }
 btnBoost.addEventListener('click', () => { boostTouched = true; setBoost(!boost); });
+
+/* ---------- dimensional expedition card ---------- */
+const passportDialog = $('passportDialog');
+const passportCanvas = $('passportCanvas');
+const passportCtx = passportCanvas.getContext('2d');
+const btnPassport = $('btnPassport');
+
+function expeditionId(){ return 'CX-11D-' + expeditionSeed.toString(16).toUpperCase().padStart(8, '0'); }
+function expeditionHash(){ return '#expedition=11d-v1-' + expeditionSeed.toString(16).toUpperCase().padStart(8, '0') + '-' + lang; }
+function expeditionShareUrl(){ return location.href.split('#')[0] + expeditionHash(); }
+function updatePassportButton(){
+  btnPassport.textContent = (lang === 'ja' ? '遠征記録 ' : 'PASSPORT ') + visited.size + '/11';
+}
+
+function seededRandom(seed){
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
+function renderPassportDom(){
+  const x = EXPERIENCE[lang];
+  $('passportKicker').textContent = lang === 'ja' ? 'CODEX // 次元遠征記録' : 'CODEX // DIMENSIONAL EXPEDITION';
+  $('passportTitle').textContent = x.passportTitle;
+  $('passportReached').textContent = x.reached;
+  $('passportObserved').textContent = x.observed(visited.size);
+  $('passportIdText').textContent = x.id + ' · ' + expeditionId();
+  $('passportShare').textContent = x.share;
+  $('passportSave').textContent = x.save;
+  $('passportCopy').textContent = x.copy;
+  $('passportShare').setAttribute('aria-label', x.share);
+  $('passportSave').setAttribute('aria-label', x.save);
+  $('passportCopy').setAttribute('aria-label', x.copy);
+  $('passportClose').setAttribute('aria-label', x.close);
+  $('passportStatus').textContent = x.preparing;
+}
+
+function drawPassportCard(){
+  const c = passportCtx;
+  const rand = seededRandom(expeditionSeed);
+  const x = EXPERIENCE[lang];
+  const width = passportCanvas.width, height = passportCanvas.height;
+  const bg = c.createLinearGradient(0, 0, width, height);
+  bg.addColorStop(0, '#050914');
+  bg.addColorStop(.56, '#0a1628');
+  bg.addColorStop(1, '#170b1a');
+  c.fillStyle = bg;
+  c.fillRect(0, 0, width, height);
+
+  c.strokeStyle = 'rgba(126,164,196,.08)';
+  c.lineWidth = 1;
+  for(let gx = 0; gx <= width; gx += 48){ c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, height); c.stroke(); }
+  for(let gy = 0; gy <= height; gy += 48){ c.beginPath(); c.moveTo(0, gy); c.lineTo(width, gy); c.stroke(); }
+  c.fillStyle = 'rgba(207,235,255,.7)';
+  c.beginPath();
+  for(let i = 0; i < 96; i++){
+    const sx = rand() * width, sy = rand() * height, sr = .4 + rand() * 1.25;
+    c.moveTo(sx + sr, sy); c.arc(sx, sy, sr, 0, Math.PI * 2);
+  }
+  c.fill();
+
+  try{
+    const knot = new Path2D(logoPath.getAttribute('d'));
+    c.save();
+    c.translate(890, 330);
+    c.scale(17, 17);
+    c.translate(-12, -12);
+    c.fillStyle = 'rgba(203,231,245,.07)';
+    c.fill(knot);
+    c.restore();
+  }catch(err){ /* text fallback remains */ }
+
+  c.save();
+  c.globalAlpha = .66;
+  c.globalCompositeOperation = 'lighter';
+  c.drawImage(canvas, 515, 76, 640, 525);
+  c.restore();
+  const shade = c.createLinearGradient(430, 0, 760, 0);
+  shade.addColorStop(0, '#060b16');
+  shade.addColorStop(1, 'rgba(6,11,22,0)');
+  c.fillStyle = shade;
+  c.fillRect(390, 0, 390, height);
+
+  c.fillStyle = '#e6b350';
+  c.font = '600 18px Consolas, monospace';
+  c.fillText(lang === 'ja' ? 'CODEX // 次元遠征' : 'CODEX // DIMENSIONAL EXPEDITION', 64, 70);
+  c.fillStyle = '#e9edf6';
+  c.font = '600 126px Georgia, serif';
+  c.fillText('11D', 56, 220);
+  c.font = '600 21px Consolas, monospace';
+  c.fillStyle = '#9fb0c8';
+  c.fillText(lang === 'ja' ? 'M理論領域' : 'M-THEORY SECTOR', 64, 262);
+  c.font = '16px Consolas, monospace';
+  c.fillStyle = '#d9e1ee';
+  c.fillText('2,048 VERTICES · 11,264 EDGES', 64, 304);
+  c.fillStyle = '#e6b350';
+  c.fillText(expeditionId(), 64, 342);
+
+  c.font = '14px Consolas, monospace';
+  for(let i = 1; i <= 11; i++){
+    const px = 68 + (i - 1) * 36;
+    c.beginPath();
+    c.arc(px, 405, 12, 0, Math.PI * 2);
+    c.fillStyle = visited.has(i) ? '#e6b350' : '#1c2740';
+    c.fill();
+    c.fillStyle = visited.has(i) ? '#07101b' : '#7e89a3';
+    c.textAlign = 'center';
+    c.fillText(String(i), px, 410);
+  }
+  c.textAlign = 'left';
+  c.fillStyle = '#e9edf6';
+  c.font = '20px Georgia, serif';
+  c.fillText(lang === 'ja' ? '現実のコンパイルに成功。因果律は引き続きベータ版です。' : 'Reality compiled successfully. Causality remains in beta.', 64, 480);
+  c.fillStyle = '#7e89a3';
+  c.font = '14px Consolas, monospace';
+  c.fillText(x.observed(visited.size), 64, 520);
+  c.fillText(lang === 'ja' ? '端末内で生成 · テレメトリなし' : 'GENERATED LOCALLY · ZERO TELEMETRY', 64, 628);
+  c.textAlign = 'right';
+  c.fillText(location.host + location.pathname, 1136, 628);
+  c.textAlign = 'left';
+}
+
+function preparePassportBlob(){
+  passportBlob = null;
+  $('passportShare').disabled = true;
+  $('passportSave').disabled = true;
+  drawPassportCard();
+  passportCanvas.toBlob(blob => {
+    passportBlob = blob;
+    $('passportShare').disabled = !blob;
+    $('passportSave').disabled = !blob;
+    $('passportStatus').textContent = blob ? EXPERIENCE[lang].readyShare : EXPERIENCE[lang].shareUnavailable;
+  }, 'image/png');
+}
+
+function openPassport(){
+  if(target < 11 && compileState !== 'success'){
+    showToast(EXPERIENCE[lang].passportLocked, 3600);
+    return;
+  }
+  passportWasRotating = autoRotate;
+  autoRotate = false;
+  syncRotateBtn();
+  renderPassportDom();
+  preparePassportBlob();
+  if(!passportDialog.open) passportDialog.showModal();
+  $('passportClose').focus();
+}
+btnPassport.addEventListener('click', openPassport);
+$('passportClose').addEventListener('click', () => passportDialog.close());
+passportDialog.addEventListener('close', () => {
+  if(passportWasRotating && !reduced){ autoRotate = true; syncRotateBtn(); }
+  btnPassport.focus({preventScroll:true});
+});
+
+async function copyExpeditionLink(){
+  const url = expeditionShareUrl();
+  let copied = false;
+  try{
+    await Promise.race([
+      navigator.clipboard.writeText(url),
+      new Promise((resolve, reject) => setTimeout(() => reject(new Error('clipboard timeout')), 800)),
+    ]);
+    copied = true;
+  }catch(err){ /* fallback below */ }
+  if(!copied){
+    const field = document.createElement('textarea');
+    field.value = url;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    try{ copied = document.execCommand('copy'); }catch(err){ copied = false; }
+    field.remove();
+  }
+  passportUrl = url;
+  $('passportStatus').textContent = copied ? EXPERIENCE[lang].copied : url;
+  return copied;
+}
+$('passportCopy').addEventListener('click', copyExpeditionLink);
+$('passportSave').addEventListener('click', () => {
+  if(!passportBlob) return;
+  const url = URL.createObjectURL(passportBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'codex-11d-expedition-' + expeditionId() + '.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1200);
+  $('passportStatus').textContent = EXPERIENCE[lang].saved;
+});
+$('passportShare').addEventListener('click', async () => {
+  if(!passportBlob) return;
+  const x = EXPERIENCE[lang];
+  const url = expeditionShareUrl();
+  const text = lang === 'ja' ? 'Codexで現実を11次元までコンパイルしました。因果律はまだベータ版です。' : 'I asked Codex to compile reality in 11 dimensions. Causality is still in beta.';
+  try{
+    const file = new File([passportBlob], 'codex-11d-expedition.png', {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({title:x.passportTitle,text,url,files:[file]});
+    else if(navigator.share) await navigator.share({title:x.passportTitle,text,url});
+    else{ await copyExpeditionLink(); return; }
+    $('passportStatus').textContent = x.shared;
+  }catch(err){
+    if(err && err.name !== 'AbortError') $('passportStatus').textContent = x.shareUnavailable;
+  }
+});
 
 /* ---------- drag rotation + pinch zoom ---------- */
 let dragging = false, px = 0, py = 0;
@@ -1624,6 +2636,13 @@ function applyLang(l){
   syncRotateBtn();
   renderDimTexts(target);
   renderObservatoryLog(target);
+  renderCompileText();
+  updatePassportButton();
+  if(passportDialog.open){ renderPassportDom(); preparePassportBlob(); }
+  if(breachActive){
+    $('breachCode').textContent = EXPERIENCE[l].breachCode;
+    $('breachDetail').textContent = EXPERIENCE[l].breachDetail;
+  }
   try{ localStorage.setItem('dimviz-lang', l); }catch(err){ /* sandboxed storage */ }
 }
 $('langEN').addEventListener('click', () => applyLang('en'));
@@ -1632,14 +2651,40 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
 /* ---------- init ---------- */
 (function init(){
   let savedLang = null, savedFs = null;
+  const shared = location.hash.match(/^#expedition=11d-v1-([0-9A-Fa-f]{8})-(en|ja)$/);
   try{
     savedLang = localStorage.getItem('dimviz-lang');
     savedFs = localStorage.getItem('dimviz-fs');
   }catch(err){ /* sandboxed storage */ }
+  if(shared){
+    expeditionSeed = parseInt(shared[1], 16) >>> 0;
+    savedLang = shared[2];
+  }else if(window.crypto && crypto.getRandomValues){
+    const seedBuffer = new Uint32Array(1);
+    crypto.getRandomValues(seedBuffer);
+    expeditionSeed = seedBuffer[0] >>> 0;
+  }else{
+    expeditionSeed = (Date.now() ^ 0x11d0c0de) >>> 0;
+  }
   applyLang(savedLang === 'ja' ? 'ja' : 'en');   // default: EN
   setFontScale(Number.isFinite(+savedFs) && savedFs !== null ? +savedFs : 2); // default: two steps up
   renderStats(3);
   setZoomT(1);
+  prepareFinaleTargets();
+  stage.dataset.dimension = '3';
+  updatePassportButton();
+  if(shared){
+    compileState = 'hidden';
+    setCompileSurface('hidden');
+    compileNavigating = true;
+    setDimension(11, false);
+    dcur = 11;
+    compileNavigating = false;
+  }else{
+    compileState = 'intro';
+    setCompileSurface('intro');
+  }
+  renderCompileText();
 })();
 requestAnimationFrame(frame);
 </script>
