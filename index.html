@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aspects of Dimensions | 次元の様相 1D–11D</title>
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#060a13;
+  --panel:#0b1120;
+  --panel2:#0e1526;
+  --line:#1c2740;
+  --ink:#e9edf6;
+  --mut:#7e89a3;
+  --gold:#e6b350;
+  --gold-dim:#8a6f3a;
+  --hue:196;
+  --fs:1.25;   /* text scale — adjustable via the A−/A+ buttons */
+  --serif:"Hiragino Mincho ProN","Yu Mincho","BIZ UDPMincho","Bodoni MT",Georgia,serif;
+  --sans:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",Meiryo,sans-serif;
+  --mono:"Cascadia Code",Consolas,"SF Mono","Courier New",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  overflow:hidden;
+}
+#app{
+  height:100vh;
+  height:100dvh;
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+}
+
+/* ---------- header ---------- */
+header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 22px;
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:baseline;gap:14px;min-width:0;overflow:hidden;flex:1 1 auto}
+.brand h1{
+  font-family:var(--serif);
+  font-size:calc(var(--fs)*clamp(15px,1.9vw,20px));
+  font-weight:600;
+  letter-spacing:.14em;
+  white-space:nowrap;
+}
+.brand .tag{
+  min-width:0;
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.22em;
+  color:var(--mut);
+  text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.hdr-controls{display:flex;gap:8px;flex-shrink:0;align-items:center}
+button.ctl{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*11px);
+  letter-spacing:.08em;
+  color:var(--ink);
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:3px;
+  padding:6px 12px;
+  cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+button.ctl:hover{border-color:var(--gold-dim);color:var(--gold)}
+button.ctl:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.lang-seg{
+  display:flex;
+  border:1px solid var(--line);
+  border-radius:3px;
+  overflow:hidden;
+}
+.lang-seg button{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*11px);
+  letter-spacing:.1em;
+  padding:6px 12px;
+  background:var(--panel);
+  color:var(--mut);
+  border:none;
+  cursor:pointer;
+  transition:color .2s,background .2s;
+}
+.lang-seg button + button{border-left:1px solid var(--line)}
+.lang-seg button:hover{color:var(--ink)}
+.lang-seg button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.lang-seg button.on{
+  background:var(--panel2);
+  color:var(--gold);
+  font-weight:700;
+}
+
+/* ---------- main ---------- */
+main{
+  display:grid;
+  grid-template-columns:1fr 344px;
+  width:100%;
+  min-height:0;
+  min-width:0;
+}
+
+/* stage */
+.stage{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+}
+.stage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(closest-side at 50% 52%, hsl(var(--hue) 55% 13% / .55), transparent 78%),
+    repeating-linear-gradient(0deg, transparent 0 47px, hsl(222 40% 60% / .045) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, hsl(222 40% 60% / .045) 47px 48px);
+  transition:background .6s;
+  pointer-events:none;
+}
+.ai-watermark{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(14px,3vw,42px);
+  color:var(--ink);
+  opacity:.06;
+  transform:translateY(3%);
+  transition:opacity .6s;
+  pointer-events:none;
+  user-select:none;
+}
+.ai-watermark svg{
+  width:clamp(84px,15vmin,172px);
+  height:auto;
+  flex:none;
+}
+.codex-word{
+  font-family:var(--mono);
+  font-size:clamp(58px,9.2vw,138px);
+  font-weight:600;
+  line-height:1;
+  letter-spacing:.18em;
+  white-space:nowrap;
+}
+.ghost{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--serif);
+  font-size:44vmin;
+  font-weight:600;
+  color:hsl(var(--hue) 45% 58% / .07);
+  user-select:none;
+  pointer-events:none;
+  line-height:1;
+  transition:color .6s;
+}
+canvas#cv{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  width:100%;
+  height:100%;
+  cursor:grab;
+  touch-action:none;
+}
+canvas#cv.dragging{cursor:grabbing}
+.observatory-log{
+  position:absolute;
+  z-index:2;
+  top:16px;
+  left:18px;
+  width:min(430px,calc(100% - 154px));
+  padding:2px 0 3px 11px;
+  border-left:1px solid hsl(var(--hue) 54% 62% / .34);
+  font-family:var(--mono);
+  text-shadow:0 2px 14px var(--bg),0 2px 14px var(--bg);
+  pointer-events:none;
+  transition:border-color .6s;
+}
+.observatory-label{
+  display:block;
+  margin-bottom:4px;
+  color:hsl(var(--hue) 58% 70% / .72);
+  font-size:calc(var(--fs)*8px);
+  font-weight:600;
+  letter-spacing:.2em;
+}
+.observatory-text{
+  display:block;
+  color:hsl(215 22% 79% / .7);
+  font-size:calc(var(--fs)*10px);
+  line-height:1.55;
+  letter-spacing:.03em;
+}
+.hint{
+  position:absolute;
+  z-index:2;
+  left:18px;
+  bottom:14px;
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.16em;
+  color:var(--mut);
+  pointer-events:none;
+}
+.toast{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  bottom:58px;
+  transform:translate(-50%,12px);
+  opacity:0;
+  transition:opacity .35s,transform .35s;
+  background:hsl(222 40% 8% / .93);
+  border:1px solid var(--gold-dim);
+  color:var(--ink);
+  font-size:calc(var(--fs)*12px);
+  line-height:1.7;
+  padding:10px 20px;
+  border-radius:4px;
+  pointer-events:none;
+  max-width:min(80%,520px);
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* stage tools (zoom + boost) */
+.stage-tools{
+  position:absolute;
+  z-index:3;
+  top:14px;
+  right:14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:flex-end;
+}
+.stage-tools button{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*14px);
+  min-width:32px;
+  height:32px;
+  padding:0 8px;
+  background:hsl(222 40% 8% / .82);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:3px;
+  cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.stage-tools button:hover{border-color:var(--gold-dim);color:var(--gold)}
+.stage-tools button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.stage-tools button.boost{
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.14em;
+  height:28px;
+  color:var(--mut);
+}
+.stage-tools button.boost.on{
+  color:var(--gold);
+  border-color:var(--gold-dim);
+  box-shadow:0 0 10px hsl(42 70% 55% / .25);
+}
+.zoom-val{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*9px);
+  letter-spacing:.1em;
+  color:var(--mut);
+  text-align:right;
+  padding-right:2px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- rail ---------- */
+.rail{
+  border-left:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel) 0%,var(--bg) 100%);
+  padding:26px 24px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.3em;
+  color:var(--gold);
+}
+.dim-head{display:flex;align-items:baseline;gap:10px}
+.dim-head .num{
+  font-family:var(--serif);
+  font-size:76px;   /* display type — deliberately not text-scaled */
+  font-weight:600;
+  line-height:.9;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.dim-head .unit{
+  font-family:var(--serif);
+  font-size:27px;   /* display type — deliberately not text-scaled */
+  letter-spacing:.1em;
+}
+.dim-head .jp-name{
+  margin-left:auto;
+  font-family:var(--serif);
+  font-size:calc(var(--fs)*22px);
+  letter-spacing:.12em;
+  color:var(--gold);
+  writing-mode:vertical-rl;
+  max-height:82px;
+}
+html[data-lang="en"] .dim-head .jp-name{
+  writing-mode:horizontal-tb;
+  max-height:none;
+  font-size:calc(var(--fs)*17px);
+  text-align:right;
+  align-self:center;
+  letter-spacing:.06em;
+}
+.dim-en{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*11px);
+  letter-spacing:.32em;
+  color:var(--mut);
+  border-bottom:1px solid var(--line);
+  padding-bottom:14px;
+}
+.fadebox{transition:opacity .28s}
+.fadebox.out{opacity:0}
+.desc{
+  font-size:calc(var(--fs)*13px);
+  line-height:1.95;
+  color:var(--ink);
+  text-align:justify;
+}
+html[data-lang="en"] .desc{line-height:1.75;text-align:left}
+.note{
+  font-size:calc(var(--fs)*11.5px);
+  line-height:1.8;
+  color:var(--gold);
+  border-left:2px solid var(--gold-dim);
+  padding:2px 0 2px 12px;
+}
+.quote{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:calc(var(--fs)*12.5px);
+  line-height:1.9;
+  color:var(--ink);
+  opacity:.92;
+}
+.quote .qmark{
+  color:var(--gold);
+  font-size:calc(var(--fs)*20px);
+  line-height:0;
+  vertical-align:-.28em;
+  margin-right:4px;
+  font-style:normal;
+}
+.quote .qwho{
+  display:block;
+  font-family:var(--mono);
+  font-style:normal;
+  font-size:calc(var(--fs)*9.5px);
+  color:var(--mut);
+  text-align:right;
+  margin-top:6px;
+  letter-spacing:.12em;
+}
+.stats{
+  border-top:1px solid var(--line);
+  padding-top:14px;
+}
+.stats .s-title{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.3em;
+  color:var(--mut);
+  margin-bottom:10px;
+}
+.stats table{width:100%;border-collapse:collapse}
+.stats td{
+  padding:4px 0;
+  font-size:calc(var(--fs)*12px);
+  vertical-align:baseline;
+}
+.stats td.k{color:var(--mut);width:42%}
+.stats td.f{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10.5px);
+  color:var(--mut);
+  width:28%;
+}
+.stats td.v{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*13px);
+  text-align:right;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- deck (slider) ---------- */
+footer.deck{
+  border-top:1px solid var(--line);
+  background:var(--panel);
+  padding:14px 26px 16px;
+}
+.deck-label{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-bottom:8px;
+}
+.deck-label .l{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.3em;
+  color:var(--gold);
+}
+.deck-label .r{
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*10px);
+  letter-spacing:.14em;
+  color:var(--mut);
+}
+input[type=range]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:22px;
+  background:transparent;
+  cursor:pointer;
+  display:block;
+}
+input[type=range]:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:2px}
+input[type=range]::-webkit-slider-runnable-track{
+  height:2px;
+  background:linear-gradient(90deg,
+    hsl(160 60% 45%), hsl(196 65% 50%), hsl(250 60% 58%),
+    hsl(300 55% 55%), hsl(340 65% 55%));
+  border-radius:1px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:16px;
+  height:16px;
+  margin-top:-7px;
+  background:var(--gold);
+  border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--gold), 0 0 14px hsl(42 70% 55% / .5);
+  transform:rotate(45deg);
+  border-radius:2px;
+}
+input[type=range]::-moz-range-track{
+  height:2px;
+  background:linear-gradient(90deg,
+    hsl(160 60% 45%), hsl(196 65% 50%), hsl(250 60% 58%),
+    hsl(300 55% 55%), hsl(340 65% 55%));
+  border-radius:1px;
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;
+  height:12px;
+  background:var(--gold);
+  border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--gold), 0 0 14px hsl(42 70% 55% / .5);
+  transform:rotate(45deg);
+  border-radius:2px;
+}
+.deck-range{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:start;
+}
+.ticks{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 1px 0;
+}
+.ticks button,.ghost-slot button{
+  position:relative;
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*11px);
+  width:calc(var(--fs)*24px);
+  padding:3px 0;
+  background:none;
+  border:none;
+  border-radius:3px;
+  color:var(--mut);
+  cursor:pointer;
+  font-variant-numeric:tabular-nums;
+  transition:color .2s;
+}
+.ghost-slot{padding-top:28px}
+.ticks button:hover,.ghost-slot button:hover{color:var(--ink)}
+.ticks button:focus-visible,.ghost-slot button:focus-visible{outline:1px solid var(--gold);outline-offset:1px}
+.ticks button.on{
+  color:var(--gold);
+  font-weight:700;
+}
+.ticks button.visited::after{
+  content:"";
+  position:absolute;
+  bottom:-2px;
+  left:50%;
+  transform:translateX(-50%);
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:var(--gold-dim);
+}
+.ghost-slot button.ghost12{
+  color:hsl(222 20% 34%);
+  border:1px dashed var(--line);
+}
+.ghost-slot button.ghost12:hover{color:var(--gold-dim)}
+.ghost-slot button.ghost12.wiggle{animation:wiggle .45s ease}
+@keyframes wiggle{
+  20%{transform:rotate(-8deg)}
+  45%{transform:rotate(7deg)}
+  70%{transform:rotate(-4deg)}
+  100%{transform:rotate(0)}
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:1000px){
+  header{padding-inline:14px}
+  .brand .tag{display:none}
+  .hdr-controls{gap:5px}
+  button.ctl,.lang-seg button{padding-inline:8px}
+}
+@media (max-width:820px){
+  body{overflow:auto}
+  #app{height:auto;grid-template-rows:auto auto auto}
+  main{grid-template-columns:1fr}
+  .stage{height:52vh;min-height:320px}
+  .rail{border-left:none;border-top:1px solid var(--line)}
+  .ghost{font-size:52vmin}
+}
+@media (max-width:600px){
+  header{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    padding:10px 12px;
+  }
+  .brand{width:100%}
+  .brand h1{overflow:hidden;text-overflow:ellipsis}
+  .hdr-controls{
+    width:100%;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:6px;
+  }
+  .lang-seg{display:grid;grid-template-columns:1fr 1fr}
+  .hdr-controls > button.ctl{width:100%}
+  footer.deck{padding-inline:14px}
+  .ticks button,.ghost-slot button{
+    width:20px;
+    font-size:calc(var(--fs)*9px);
+  }
+  .rail{padding-inline:20px}
+  .ai-watermark{
+    gap:10px;
+    transform:translateY(3%) rotate(-2deg);
+  }
+  .ai-watermark svg{width:clamp(58px,20vw,84px)}
+  .codex-word{
+    font-size:clamp(42px,15vw,70px);
+    letter-spacing:.1em;
+  }
+  .observatory-log{
+    top:14px;
+    left:12px;
+    right:126px;
+    width:auto;
+    padding-left:8px;
+  }
+  .observatory-label{font-size:calc(var(--fs)*7px)}
+  .observatory-text{font-size:calc(var(--fs)*8px);line-height:1.5}
+  .hint{
+    left:112px;
+    right:12px;
+    line-height:1.6;
+    letter-spacing:.1em;
+    font-size:calc(var(--fs)*8px);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.toast{transition:none}
+  .ghost-slot button.ghost12.wiggle{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <h1 id="ttl">Aspects of Dimensions</h1>
+      <span class="tag" id="tag">次元の様相 — Hypercube Projection 1D–11D</span>
+    </div>
+    <div class="hdr-controls">
+      <div class="lang-seg" role="group" aria-label="Language">
+        <button id="langEN" class="on" aria-label="English" aria-pressed="true">EN</button><button id="langJA" aria-label="Japanese" aria-pressed="false">JP</button>
+      </div>
+      <div class="lang-seg" role="group" aria-label="Text size">
+        <button id="fontDn" aria-label="Smaller text">A−</button><button id="fontUp" aria-label="Larger text">A＋</button>
+      </div>
+      <button class="ctl" id="btnRotate" aria-label="⏸ Pause" aria-pressed="true">⏸ Pause</button>
+      <button class="ctl" id="btnReset" aria-label="Reset view">Reset view</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage" aria-label="Hypercube projection view">
+      <div class="ai-watermark" data-brand="ChatGPT" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path fill="currentColor" d="M22.281 9.821a5.984 5.984 0 0 0-.515-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.98 4.18a5.984 5.984 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.984 5.984 0 0 0 13.259 24a6.055 6.055 0 0 0 5.771-4.206 5.989 5.989 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.434a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.778-2.758a.75.75 0 0 0 .375-.65v-6.736l2.019 1.166a.068.068 0 0 1 .036.054v5.577a4.49 4.49 0 0 1-4.473 4.468zm-9.73-4.125a4.463 4.463 0 0 1-.534-3.013l.141.085 4.783 2.758a.75.75 0 0 0 .75 0l5.833-3.367v2.332a.067.067 0 0 1-.03.061L9.645 19.95a4.489 4.489 0 0 1-6.114-1.641zM2.34 8.896a4.47 4.47 0 0 1 2.38-1.973V12.51a.75.75 0 0 0 .375.65l5.833 3.367-2.019 1.166a.067.067 0 0 1-.066.003l-4.828-2.786A4.49 4.49 0 0 1 2.34 8.896zm16.81 3.608-5.833-3.367 2.019-1.166a.067.067 0 0 1 .066-.003l4.828 2.786a4.49 4.49 0 0 1-.676 8.013V13.18a.75.75 0 0 0-.404-.676zm2.475-3.548-.141-.085-4.783-2.758a.75.75 0 0 0-.75 0L10.118 9.48V7.147a.067.067 0 0 1 .03-.06L14.976 4.3a4.49 4.49 0 0 1 6.65 4.656zM8.32 12.683 6.3 11.517a.068.068 0 0 1-.035-.054V5.886a4.49 4.49 0 0 1 7.35-3.427l-.141.081-4.778 2.758a.75.75 0 0 0-.375.65zm1.097-1.904 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"/>
+        </svg>
+        <span class="codex-word">CODEX</span>
+      </div>
+      <div class="ghost" id="ghost" aria-hidden="true">3</div>
+      <canvas id="cv"></canvas>
+      <div class="stage-tools">
+        <button id="zoomIn" aria-label="Zoom in">＋</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+        <div class="zoom-val" id="zoomVal">×1.0</div>
+        <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
+      </div>
+      <div class="observatory-log" role="note">
+        <span class="observatory-label" id="logLabel">OBSERVATORY LOG · 03</span>
+        <span class="observatory-text" id="logText">Local conditions nominal. Coffee remains inside the cup.</span>
+      </div>
+      <div class="hint" id="hint">DRAG — rotate · WHEEL — zoom · SLIDER — dimension</div>
+      <div class="toast" id="toast" role="status"></div>
+    </section>
+
+    <aside class="rail" aria-live="polite">
+      <div>
+        <div class="eyebrow">DIMENSION</div>
+        <div class="dim-head">
+          <span class="num" id="dimNum">3</span>
+          <span class="unit" id="dimUnit">D</span>
+          <span class="jp-name fadebox" id="dimName">Space</span>
+        </div>
+      </div>
+      <div class="dim-en fadebox" id="dimEn">CUBE</div>
+      <p class="desc fadebox" id="dimDesc"></p>
+      <div class="note fadebox" id="dimNote"></div>
+      <div class="quote fadebox" id="dimQuote"><span class="qmark">“</span><span id="quoteText"></span><span class="qwho" id="quoteWho"></span></div>
+      <div class="stats">
+        <div class="s-title">HYPERCUBE n=<span id="statN">3</span></div>
+        <table>
+          <tbody>
+          <tr><td class="k" id="kV">Vertices</td><td class="f">2ⁿ</td><td class="v" id="stV">8</td></tr>
+          <tr><td class="k" id="kE">Edges</td><td class="f">n·2ⁿ⁻¹</td><td class="v" id="stE">12</td></tr>
+          <tr><td class="k" id="kF">Faces (squares)</td><td class="f">C(n,2)·2ⁿ⁻²</td><td class="v" id="stF">6</td></tr>
+          <tr><td class="k" id="kC">Cells (cubes)</td><td class="f">C(n,3)·2ⁿ⁻³</td><td class="v" id="stC">1</td></tr>
+          <tr><td class="k" id="kD">Diagonal</td><td class="f">√n</td><td class="v" id="stD">1.732</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="deck">
+    <div class="deck-label">
+      <span class="l" id="deckLabel">DIMENSION SLIDER</span>
+      <span class="r" id="deckInfo">n = 3</span>
+    </div>
+    <div class="deck-range">
+      <div>
+        <input type="range" id="slider" min="1" max="11" step="1" value="3" aria-label="Dimension (1–11)">
+        <div class="ticks" id="ticks"></div>
+      </div>
+      <div class="ghost-slot" id="ghostSlot"></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   Aspects of Dimensions — n-hypercube projection, 1D–11D
+   nD → (perspective) → 2D. Switching dimensions morphs by
+   extruding/collapsing the newest axis (dcur eases to target).
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const canvas = $('cv');
+const ctx = canvas.getContext('2d');
+
+const MAXD = 11;
+const PERSP = 2.8;               // perspective eye distance (post-normalization coords)
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+/* ---------- i18n ---------- */
+const UI = {
+  en: {
+    title:'Aspects of Dimensions',
+    tag:'次元の様相 — Hypercube Projection 1D–11D',
+    pause:'⏸ Pause', rotate:'▶ Rotate', reset:'Reset view',
+    hint:'DRAG rotate · WHEEL zoom · DBLCLICK hyperspin · SLIDER dimension',
+    boost:'LINE BOOST',
+    langEN:'English', langJA:'Japanese',
+    zoomIn:'Zoom in', zoomOut:'Zoom out',
+    fontUp:'Larger text', fontDn:'Smaller text',
+    unit:'D',
+    stats:['Vertices','Edges','Faces (squares)','Cells (cubes)','Diagonal'],
+    slider:'Dimension (1–11)',
+    tick: n => 'Switch to ' + n + 'D',
+    stage:'Hypercube projection view',
+    resident: n => '— resident of ' + n + 'D',
+    logLabel: n => 'OBSERVATORY LOG · ' + String(n).padStart(2, '0'),
+    sameDimension: n => 'Still observing ' + n + 'D. No dimensional drift detected.',
+    twelveAria:'Dimension 12 (under construction)',
+    toastTwelve:'Dimension 12 is under construction. Physicists are still laying the theory.',
+    toastAll:'All 11 dimensions visited — there is no going back to Flatland now.',
+    toastReset:'View reset. The universe itself was not moved.',
+    toastHyperspin:'Hyperspin engaged. Loose dimensions secured.',
+  },
+  ja: {
+    title:'次元の様相',
+    tag:'Aspects of Dimensions — Hypercube Projection 1D–11D',
+    pause:'⏸ 回転停止', rotate:'▶ 回転再開', reset:'視点リセット',
+    hint:'DRAG 回転 · WHEEL ズーム · DBLCLICK ハイパースピン · SLIDER 次元',
+    boost:'線を強調',
+    langEN:'英語', langJA:'日本語',
+    zoomIn:'ズームイン', zoomOut:'ズームアウト',
+    fontUp:'文字を大きく', fontDn:'文字を小さく',
+    unit:'次元',
+    stats:['頂点','辺','面（正方形）','胞（立方体）','対角線長'],
+    slider:'次元数（1〜11）',
+    tick: n => n + '次元へ切替',
+    stage:'超立方体の投影ビュー',
+    resident: n => '——' + n + '次元住民',
+    logLabel: n => '観測記録 · ' + String(n).padStart(2, '0'),
+    sameDimension: n => n + '次元を引き続き観測中。次元ドリフトは検出されません。',
+    twelveAria:'12次元（未開通）',
+    toastTwelve:'12次元は現在工事中です。物理学者が理論を敷設しています。',
+    toastAll:'全11次元を踏破！ もう平面の暮らしには戻れません。',
+    toastReset:'視点をリセットしました。宇宙そのものは動かしていません。',
+    toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
+  },
+};
+
+/* the resident's log — one voice per dimension */
+const QUOTES = {
+  en: [
+    '"Passing someone" is a philosophical concept here.',
+    'We can\'t have digestive tracts — they\'d split us in two.',
+    'Knots only work in this dimension. Enjoy them while you can.',
+    'I can take things out of a locked safe without opening it. Ethics sold separately.',
+    'My apartment is curled up smaller than an atom. The rent is unbeatable.',
+    'My floor plan is a Calabi–Yau manifold. Still looking for the front door.',
+    'Thought it was a sphere. It was an exotic sphere. Happens all the time.',
+    'We stack oranges perfectly here. It\'s mathematically proven.',
+    'It takes all nine dimensions to keep the strings in tune.',
+    'We had five theories. Turned out they were branches of the same company.',
+    'Don\'t ask what the M stands for. Even the founder doesn\'t know.',
+  ],
+  ja: [
+    'ここでは「すれ違う」は哲学の概念です。',
+    '消化管は持てません。体が二つに分かれてしまうので。',
+    '紐が結べるのはこの次元だけの特権です。お忘れなく。',
+    '金庫は開けずに中身を取り出せます。倫理は別売りです。',
+    'うちの部屋は原子より小さく丸まっています。家賃は最高です。',
+    '間取り図がカラビ・ヤウ多様体なので、まだ玄関が見つかりません。',
+    '球だと思ったらエキゾチック球面でした。よくある話です。',
+    'オレンジの積み方には自信があります。数学的に最密なので。',
+    '弦の調律に9次元すべてを使っています。',
+    '理論は5つありましたが、結局同じ会社の支店でした。',
+    'Mが何の略かは聞かないでください。提唱者も知りません。',
+  ],
+};
+
+/* ---------- dimension data ---------- */
+const DIM = [null,
+{ cube:'LINE SEGMENT',
+  ja:{ name:'線',
+    desc:'「前」と「後ろ」しかない世界。位置はたった1つの数で決まり、住人同士はすれ違うことすらできない。ここでの「超立方体」は、2つの頂点を結ぶただの線分。',
+    note:'すべての次元の出発点。単位線分の対角線の長さは 1。' },
+  en:{ name:'Line',
+    desc:'A world with only "forward" and "back." A position is a single number, and no inhabitant can ever pass another. Here the "hypercube" is just a segment joining two vertices.',
+    note:'The starting point of every dimension. The diagonal of a unit segment is 1.' } },
+{ cube:'SQUARE',
+  ja:{ name:'面',
+    desc:'縦と横が生まれ、図形と面積の世界になる。アボットの小説『フラットランド』の舞台。平面の住人には、通り抜けていく3次元の球が「膨らんで縮む円」として観測される。',
+    note:'正方形は2次元の超立方体。対角線の長さは √2 ≈ 1.414。' },
+  en:{ name:'Plane',
+    desc:'Width and height appear — the world of shapes and area, the stage of Abbott\'s novel Flatland. To an inhabitant of the plane, a 3D sphere passing through is seen only as a circle that swells and shrinks.',
+    note:'The square is the 2-dimensional hypercube. Its diagonal is √2 ≈ 1.414.' } },
+{ cube:'CUBE',
+  ja:{ name:'立体',
+    desc:'私たちが知覚している空間。縦・横・高さの3つの数で位置が決まる。「なぜ巨視的な空間はちょうど3次元なのか」は、物理学のいまだ解けない問いのひとつ。',
+    note:'安定した惑星軌道と原子が存在できるのは、空間が3次元のときだけだとされる。' },
+  en:{ name:'Space',
+    desc:'The space we perceive. A position takes three numbers: width, depth, height. Why macroscopic space has exactly three dimensions is still an open question in physics.',
+    note:'Stable planetary orbits and atoms are said to exist only in three spatial dimensions.' } },
+{ cube:'TESSERACT',
+  ja:{ name:'時空',
+    desc:'3つの軸すべてと直交する、第4の軸。相対性理論は時間を第4の次元として時空を組み立てる。画面に「立方体の中の立方体」が見えるのは、4次元超立方体＝テッセラクトを2次元へ落とした影だから。',
+    note:'テッセラクト：頂点16・辺32・面24・胞8。3次元への影は「入れ子の立方体」。' },
+  en:{ name:'Spacetime',
+    desc:'A fourth axis orthogonal to all three. Relativity builds spacetime with time as the fourth dimension. The "cube within a cube" on screen is the shadow of a tesseract cast down to two dimensions.',
+    note:'Tesseract: 16 vertices, 32 edges, 24 faces, 8 cells. Its 3D shadow is a nested cube.' } },
+{ cube:'PENTERACT',
+  ja:{ name:'余剰次元',
+    desc:'1921年、カルツァは5次元時空を使って重力と電磁気力の統一を試みた。クラインは「余った次元は極小に丸まって見えない」と考えた——余剰次元のコンパクト化という発想の原点。',
+    note:'単位半径の超球の体積は5次元で最大になり、以降は次元が上がるほど縮んでいく。' },
+  en:{ name:'Extra Dimensions',
+    desc:'In 1921 Kaluza used a five-dimensional spacetime to attempt unifying gravity and electromagnetism; Klein proposed the extra dimension is curled up too small to see — the origin of compactification.',
+    note:'The volume of a unit-radius ball peaks in five dimensions, then shrinks forever after.' } },
+{ cube:'HEXERACT',
+  ja:{ name:'カラビ・ヤウ',
+    desc:'超弦理論では、見えない6つの余剰次元がカラビ・ヤウ多様体という複雑な形に折り畳まれていると考える。その折り畳みの形が、素粒子の種類や質量を決めている。',
+    note:'超弦理論が許す真空——余剰次元の折り畳み方と場の選び方の組み合わせ——は 10⁵⁰⁰ 通りにも及ぶと見積もられている。' },
+  en:{ name:'Calabi–Yau',
+    desc:'Superstring theory folds six invisible extra dimensions into intricate shapes called Calabi–Yau manifolds. The geometry of the folding determines the species and masses of elementary particles.',
+    note:'The string-theory vacua — combinations of foldings and flux choices — are estimated at over 10⁵⁰⁰.' } },
+{ cube:'HEPTERACT',
+  ja:{ name:'G₂多様体',
+    desc:'例外型ホロノミー G₂ を持つ特殊な多様体が現れる次元で、M理論のコンパクト化の候補でもある。7次元球面には、位相的には同じなのに微分構造が異なる「エキゾチック球面」が存在する。',
+    note:'7次元球面の微分構造は全部で28種類——最初のエキゾチック球面は1956年、ミルナーが発見した。' },
+  en:{ name:'G₂ Manifold',
+    desc:'The dimension of special manifolds with exceptional holonomy G₂ — candidates for M-theory compactification. The 7-sphere admits "exotic spheres": topologically identical, yet with different smooth structures.',
+    note:'The 7-sphere carries exactly 28 smooth structures — the first exotic one found by Milnor in 1956.' } },
+{ cube:'OCTERACT',
+  ja:{ name:'E₈格子',
+    desc:'例外型リー群 E₈ に由来する E₈格子が住む次元。2016年、ヴィアゾフスカは8次元の球充填問題を解き、E₈格子による配置が最密であることを証明した。対称性が突出して豊かな次元。',
+    note:'E₈格子の球充填密度は π⁴/384 ≈ 25.37%。' },
+  en:{ name:'E₈ Lattice',
+    desc:'Home of the E₈ lattice, named for the exceptional Lie group. In 2016 Viazovska solved the sphere-packing problem in eight dimensions, proving the E₈ arrangement densest. A dimension of extraordinary symmetry.',
+    note:'The E₈ packing density is π⁴/384 ≈ 25.37%.' } },
+{ cube:'ENNERACT',
+  ja:{ name:'弦の空間',
+    desc:'超弦理論が要求する空間次元の数。9つの空間次元があってはじめて、弦は量子論的な矛盾なく振動できる。私たちに見える3次元以外の6つは、微小に折り畳まれているとされる。',
+    note:'時間を加えると10次元時空——超弦理論の舞台が完成する。' },
+  en:{ name:'String Space',
+    desc:'The number of spatial dimensions superstring theory demands. Only with nine can strings vibrate free of quantum anomalies; the six we cannot see are curled up at minuscule scales.',
+    note:'Add time, and 10-dimensional spacetime — the stage of superstring theory — is complete.' } },
+{ cube:'DEKERACT',
+  ja:{ name:'超弦理論',
+    desc:'9つの空間と1つの時間からなる超弦理論の時空。この次元数でのみ、5種類の超弦理論（I型・IIA・IIB・ヘテロ型2種）が数学的に破綻なく成立する。',
+    note:'10次元超立方体の頂点は1024個——3次元立方体の128倍。' },
+  en:{ name:'Superstring',
+    desc:'The 9+1 spacetime of superstring theory. Only in this number of dimensions do all five superstring theories — type I, IIA, IIB and the two heterotics — hold together mathematically.',
+    note:'A 10-cube has 1,024 vertices — 128 times as many as a cube.' } },
+{ cube:'HENDEKERACT',
+  ja:{ name:'M理論',
+    desc:'1995年、ウィッテンは5つの超弦理論が、11次元にひそむ単一の理論——M理論——の異なる側面であることを示した。11次元は超重力理論が許す最大の時空次元。膜（ブレーン）が基本要素となる世界。',
+    note:'「M」の意味は membrane / mystery / matrix ——提唱者自身、いまも決めていない。' },
+  en:{ name:'M-Theory',
+    desc:'In 1995 Witten showed the five superstring theories are different faces of a single theory hiding in eleven dimensions: M-theory. Eleven is also the maximum spacetime dimension supergravity allows. Membranes — branes — become the basic objects.',
+    note:'What "M" stands for — membrane, mystery, matrix — its proposer never settled.' } },
+];
+
+/* ---------- geometry (cached per integer dimension) ---------- */
+const geoCache = {};
+function geo(D){
+  if(geoCache[D]) return geoCache[D];
+  const V = 1 << D;
+  const verts = new Float64Array(V * D);      // vertex coords ±1
+  for(let i = 0; i < V; i++)
+    for(let k = 0; k < D; k++)
+      verts[i*D + k] = (i >> k & 1) ? 1 : -1;
+  const edges = [];                            // [vertex i, vertex j, axis k]
+  for(let i = 0; i < V; i++)
+    for(let k = 0; k < D; k++){
+      const j = i ^ (1 << k);
+      if(j > i) edges.push([i, j, k]);
+    }
+  return geoCache[D] = {
+    V, verts, edges,
+    sx: new Float64Array(V),
+    sy: new Float64Array(V),
+    dp: new Float64Array(V),
+  };
+}
+
+/* rotation planes (cached per dimension) */
+const planeCache = {};
+function planes(D){
+  if(planeCache[D]) return planeCache[D];
+  const ps = [];
+  if(D >= 2) ps.push([0, 1, 0.05]);
+  for(let k = 2; k < D; k++){
+    ps.push([0, k, 0.21 / Math.sqrt(k)]);
+    ps.push([1, k, 0.13 / Math.sqrt(k)]);
+  }
+  return planeCache[D] = ps;
+}
+
+function comb(n, k){
+  if(k < 0 || k > n) return 0;
+  let r = 1;
+  for(let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return Math.round(r);
+}
+
+/* ---------- state ---------- */
+let lang = 'en';
+let target = 3;                 // integer dimension the slider points at
+let dcur = 3;                   // continuous dimension value (morphs to target)
+let rotT = 7.0;                 // accumulated auto-rotation time
+let autoRotate = !reduced;
+let yaw = 0.55, pitch = 0.32;   // extra rotation from dragging
+let zoom = 1, zoomT = 1;        // current / target zoom
+let boost = false, boostTouched = false;
+let spinVel = 0;                // hyperspin burst velocity (double-click)
+const YAW0 = 0.55, PITCH0 = 0.32, ROT0 = 7.0;
+const FS_STEPS = [1, 1.12, 1.25, 1.4, 1.6];
+let fsIndex = 2;                // default: two steps above the original scale
+
+/* ---------- canvas ---------- */
+let W = 0, H = 0, DPR = 1;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.clientWidth;
+  H = canvas.clientHeight;
+  canvas.width  = Math.max(1, Math.round(W * DPR));
+  canvas.height = Math.max(1, Math.round(H * DPR));
+}
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+/* ---------- transform pipeline ---------- */
+const P = new Float64Array(MAXD);   // work vector
+const NB = 8;                       // depth buckets
+const buckets = Array.from({length: NB}, () => []);
+const mbuckets = Array.from({length: NB}, () => []);   // for morphing edges
+
+function transform(g, D, cs, sn, planeList, axisScale){
+  const {V, verts, sx, sy, dp} = g;
+  const invNorm = 1 / Math.sqrt(Math.max(dcur, 1));
+  // camera distance grows with dimension: the successive projection steps
+  // compound (each scales remaining coords by up to persp/(persp-1)), and a
+  // fixed distance lets coordinates overtake the camera at D>=9 — the
+  // denominator flips sign and edges snap across the screen.
+  const persp = PERSP + 0.55 * Math.max(0, dcur - 6);
+  const scale = Math.min(W, H) * 0.335 * zoom;
+  const cx = W / 2, cy = H / 2;
+  let fmin = Infinity, fmax = -Infinity;
+
+  for(let i = 0; i < V; i++){
+    for(let k = 0; k < D; k++) P[k] = verts[i*D + k] * axisScale[k];
+    // rotate
+    for(let p = 0; p < planeList.length; p++){
+      const a = planeList[p][0], b = planeList[p][1];
+      const c = cs[p], s = sn[p];
+      const x = P[a], y = P[b];
+      P[a] = x * c - y * s;
+      P[b] = x * s + y * c;
+    }
+    // normalize, then perspective-project nD down to 2D
+    for(let k = 0; k < D; k++) P[k] *= invNorm;
+    let f = 1;
+    for(let k = D - 1; k >= 2; k--){
+      const w = persp / (persp - P[k]);
+      for(let m = 0; m < k; m++) P[m] *= w;
+      f *= w;
+    }
+    sx[i] = cx + P[0] * scale;
+    sy[i] = cy + (D >= 2 ? -P[1] : 0) * scale;
+    dp[i] = f;
+    if(f < fmin) fmin = f;
+    if(f > fmax) fmax = f;
+  }
+  return [fmin, fmax];
+}
+
+/* ---------- draw ---------- */
+function draw(){
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const D = Math.min(MAXD, Math.max(1, Math.ceil(dcur - 1e-6)));
+  const g = geo(D);
+  const pl = planes(D);
+
+  // per-axis extension (morphing: a new axis grows 0 → 1)
+  const axisScale = [];
+  for(let k = 0; k < D; k++) axisScale.push(clamp(dcur - k, 0, 1));
+
+  // rotation angles this frame (auto-rotation + drag)
+  const cs = [], sn = [];
+  for(let p = 0; p < pl.length; p++){
+    let ang = rotT * pl[p][2];
+    const a = pl[p][0], b = pl[p][1];
+    if(D >= 3){
+      if(a === 0 && b === 2) ang += yaw;
+      if(a === 1 && b === 2) ang += pitch;
+    }else if(D === 2 && a === 0 && b === 1){
+      ang += yaw;
+    }
+    cs.push(Math.cos(ang));
+    sn.push(Math.sin(ang));
+  }
+
+  const [fmin, fmax] = transform(g, D, cs, sn, pl, axisScale);
+  const frange = Math.max(fmax - fmin, 1e-9);
+  // at D<=2 no projection happens, so every vertex has the same depth —
+  // render at the brightest style instead of the dimmest bucket
+  const flat = (fmax - fmin) < 1e-6;
+
+  const hue = 160 + (dcur - 1) * 18;
+  const nEdges = g.edges.length;
+  const alphaScale = Math.max(0.1, Math.min(1, 9 / Math.sqrt(nEdges)));
+  const edgeAlpha = alpha => boost ? Math.min(1, alpha * 3.2) : alpha;
+  let widthAdd = 0;
+  if(boost){
+    widthAdd = 0.45;
+    ctx.globalCompositeOperation = 'lighter';
+  }
+  const {sx, sy, dp} = g;
+
+  // sort edges into depth buckets (edges along a morphing axis drawn individually)
+  for(let b = 0; b < NB; b++) buckets[b].length = 0;
+  const morphing = [];
+  for(let e = 0; e < nEdges; e++){
+    const ed = g.edges[e];
+    if(axisScale[ed[2]] < 0.999){ morphing.push(ed); continue; }
+    const f = (dp[ed[0]] + dp[ed[1]]) * 0.5;
+    let b = flat ? NB - 1 : Math.floor((f - fmin) / frange * NB);
+    if(b >= NB) b = NB - 1;
+    if(b < 0) b = 0;
+    buckets[b].push(ed);
+  }
+
+  ctx.lineCap = 'round';
+  // draw far → near
+  for(let b = 0; b < NB; b++){
+    const list = buckets[b];
+    if(!list.length) continue;
+    const t = b / (NB - 1);
+    ctx.beginPath();
+    for(let e = 0; e < list.length; e++){
+      const [i, j] = list[e];
+      ctx.moveTo(sx[i], sy[i]);
+      ctx.lineTo(sx[j], sy[j]);
+    }
+    ctx.strokeStyle = `hsla(${hue}, 72%, ${52 + t * 26}%, ${edgeAlpha((0.16 + t * 0.72) * alphaScale)})`;
+    ctx.lineWidth = 0.7 + t * 1.5 + widthAdd;
+    ctx.stroke();
+  }
+  // morphing edges (fade in with the axis extension) — only one axis morphs
+  // at a time, so they share a fade factor and batch like the rest
+  if(morphing.length){
+    const s = axisScale[morphing[0][2]];
+    if(s >= 0.02){
+      for(let b = 0; b < NB; b++) mbuckets[b].length = 0;
+      for(let e = 0; e < morphing.length; e++){
+        const ed = morphing[e];
+        const f = (dp[ed[0]] + dp[ed[1]]) * 0.5;
+        let b = flat ? NB - 1 : Math.floor((f - fmin) / frange * NB);
+        if(b >= NB) b = NB - 1;
+        if(b < 0) b = 0;
+        mbuckets[b].push(ed);
+      }
+      const fade = 0.15 + 0.85 * s;
+      for(let b = 0; b < NB; b++){
+        const list = mbuckets[b];
+        if(!list.length) continue;
+        const t = b / (NB - 1);
+        ctx.beginPath();
+        for(let e = 0; e < list.length; e++){
+          const [i, j] = list[e];
+          ctx.moveTo(sx[i], sy[i]);
+          ctx.lineTo(sx[j], sy[j]);
+        }
+        ctx.strokeStyle = `hsla(${hue}, 80%, ${58 + t * 22}%, ${edgeAlpha((0.16 + t * 0.72) * alphaScale * fade)})`;
+        ctx.lineWidth = 0.7 + t * 1.5 + widthAdd;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // vertices (low dimensions only; in high D the dots become noise)
+  if(g.V <= 32){
+    for(let i = 0; i < g.V; i++){
+      const t = flat ? 1 : (dp[i] - fmin) / frange;
+      ctx.beginPath();
+      ctx.arc(sx[i], sy[i], 1.6 + t * 1.6, 0, 6.2832);
+      ctx.fillStyle = `hsla(${hue}, 85%, ${62 + t * 24}%, ${0.5 + t * 0.5})`;
+      ctx.fill();
+    }
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+  drawAxes(D, cs, sn, pl, axisScale);
+}
+
+/* bottom-left: mini compass showing each axis direction */
+function drawAxes(D, cs, sn, pl, axisScale){
+  const ox = 58, oy = H - 58, L = 30;
+  ctx.strokeStyle = 'rgba(126,137,163,.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(ox, oy, 40, 0, 6.2832);
+  ctx.stroke();
+  for(let k = 0; k < D; k++){
+    for(let m = 0; m < D; m++) P[m] = m === k ? axisScale[k] : 0;
+    for(let p = 0; p < pl.length; p++){
+      const a = pl[p][0], b = pl[p][1];
+      const x = P[a], y = P[b];
+      P[a] = x * cs[p] - y * sn[p];
+      P[b] = x * sn[p] + y * cs[p];
+    }
+    const ex = P[0], ey = D >= 2 ? -P[1] : 0;
+    const hue = 160 + k * 18;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + ex * L, oy + ey * L);
+    ctx.strokeStyle = `hsla(${hue}, 70%, 62%, .85)`;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.fillStyle = `hsla(${hue}, 70%, 70%, .9)`;
+    ctx.font = (9 * FS_STEPS[fsIndex]).toFixed(1) + 'px Consolas, monospace';
+    ctx.fillText(String(k + 1), ox + ex * (L + 8) - 2, oy + ey * (L + 8) + 3);
+  }
+}
+
+/* ---------- main loop ---------- */
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min((now - lastT) / 1000, 0.1);
+  lastT = now;
+  if(autoRotate) rotT += dt;
+  // hyperspin burst decays exponentially
+  if(spinVel > 0.02){
+    rotT += spinVel * dt;
+    spinVel *= Math.exp(-dt * 2.4);
+  }
+  // dimension morphing (eased)
+  const diff = target - dcur;
+  if(Math.abs(diff) > 0.0005){
+    dcur += diff * Math.min(1, dt * 4.2);
+    if(Math.abs(target - dcur) <= 0.0005) dcur = target;
+  }
+  // zoom easing
+  const zdiff = zoomT - zoom;
+  if(Math.abs(zdiff) > 0.0005) zoom += zdiff * Math.min(1, dt * 9);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* quiet observatory humor — one field note per dimension */
+const OBSERVATORY_LOG = {
+  en: [
+    'Alignment complete. Pan control deemed unnecessary.',
+    'Depth sensor reports: not installed.',
+    'Local conditions nominal. Coffee remains inside the cup.',
+    'Temporal calibration passed yesterday.',
+    'Extra axis detected, curled beneath the noise floor.',
+    'Vacuum scan returned 10⁵⁰⁰ candidates. Filters unavailable.',
+    'Sphere appears ordinary. Differential geometry disagrees.',
+    'E₈ alignment perfect. The furniture now looks asymmetric.',
+    'String section tuned. Six axes remain backstage.',
+    'Anomaly check: clear. Reality check: pending.',
+    'Brane activity detected. Please do not fold the observation deck.',
+  ],
+  ja: [
+    '照準完了。パン操作は不要と判断しました。',
+    '深度センサー報告：未搭載です。',
+    '現地条件は平常。コーヒーはカップ内に留まっています。',
+    '時間軸の校正は昨日、合格しました。',
+    '余剰軸を検出。ノイズフロアの下で丸まっています。',
+    '真空スキャンで10⁵⁰⁰件の候補。絞り込み機能は未実装です。',
+    '球面は普通に見えます。微分幾何学班は異議を唱えています。',
+    'E₈の整列は完璧。観測室の家具が急に非対称に見えます。',
+    '弦楽部門、調律完了。6本の軸は舞台裏です。',
+    '量子異常チェック：問題なし。現実チェック：保留中。',
+    'ブレーン活動を検出。観測デッキは折り畳まないでください。',
+  ],
+};
+
+const TWELVE_MESSAGES = {
+  en: [
+    UI.en.toastTwelve,
+    '12D remains behind theory scaffolding. Imaginary hard hats are mandatory.',
+    '12D opening delayed: the permit was filed in an inaccessible dimension.',
+  ],
+  ja: [
+    UI.ja.toastTwelve,
+    '12次元は理論足場の向こうです。想像上のヘルメットを着用してください。',
+    '12次元の開通は延期中。許可申請を、こちらから入れない次元に提出しました。',
+  ],
+};
+
+/* ---------- UI ---------- */
+const slider = $('slider');
+const ticksBox = $('ticks');
+const ghostSlot = $('ghostSlot');
+const btnBoost = $('btnBoost');
+
+function fmt(x){ return x.toLocaleString('en-US'); }
+
+function renderDimTexts(n){
+  const d = DIM[n][lang];
+  $('dimName').textContent = d.name;
+  $('dimEn').textContent = DIM[n].cube;
+  $('dimDesc').textContent = d.desc;
+  $('dimNote').textContent = d.note;
+  $('quoteText').textContent = QUOTES[lang][n - 1];
+  $('quoteWho').textContent = UI[lang].resident(n);
+}
+
+function renderObservatoryLog(n){
+  $('logLabel').textContent = UI[lang].logLabel(n);
+  $('logText').textContent = OBSERVATORY_LOG[lang][n - 1];
+}
+
+/* ---------- toast ---------- */
+let toastTimer = 0;
+function showToast(msg, ms = 3600){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function renderStats(n){
+  $('statN').textContent = n;
+  $('stV').textContent = fmt(2 ** n);
+  $('stE').textContent = fmt(n * 2 ** (n - 1));
+  $('stF').textContent = fmt(comb(n, 2) * 2 ** Math.max(0, n - 2));
+  $('stC').textContent = fmt(comb(n, 3) * 2 ** Math.max(0, n - 3));
+  $('stD').textContent = Math.sqrt(n).toFixed(3);
+}
+
+let fadeTimer = 0;
+const visited = new Set([3]);
+let allVisitedToasted = false;
+function setDimension(n, fromSlider){
+  n = clamp(n | 0, 1, MAXD);
+  if(!fromSlider) slider.value = n;
+  if(n === target){
+    if(!fromSlider) showToast(UI[lang].sameDimension(n), 2600);
+    return;
+  }
+  target = n;
+  renderObservatoryLog(n);
+
+  // fade out, swap, fade in — cancel any pending swap so rapid slider
+  // drags don't strobe stale text
+  const boxes = ['dimName', 'dimEn', 'dimDesc', 'dimNote', 'dimQuote'].map($);
+  boxes.forEach(b => b.classList.add('out'));
+  clearTimeout(fadeTimer);
+  fadeTimer = setTimeout(() => {
+    renderDimTexts(n);
+    boxes.forEach(b => b.classList.remove('out'));
+  }, reduced ? 0 : 200);
+
+  $('dimNum').textContent = n;
+  $('ghost').textContent = n;
+  $('deckInfo').textContent = 'n = ' + n;
+  renderStats(n);
+  document.documentElement.style.setProperty('--hue', 160 + (n - 1) * 18);
+  tickBtns.forEach((b, i) => b.classList.toggle('on', i + 1 === n));
+
+  // dimension passport: mark visited, celebrate a full sweep once
+  visited.add(n);
+  tickBtns[n - 1].classList.add('visited');
+  if(visited.size === MAXD && !allVisitedToasted){
+    allVisitedToasted = true;
+    showToast(UI[lang].toastAll, 4600);
+  }
+
+  // auto line-boost for dense high dimensions (until the user takes over)
+  if(!boostTouched) setBoost(n >= 9);
+}
+
+/* ticks (1–11 buttons, plus a dimension under construction) */
+const tickBtns = [];
+for(let i = 1; i <= MAXD; i++){
+  const b = document.createElement('button');
+  b.textContent = i;
+  if(i === 3) b.classList.add('on', 'visited');
+  b.addEventListener('click', () => setDimension(i, false));
+  ticksBox.appendChild(b);
+  tickBtns.push(b);
+}
+const ghost12 = document.createElement('button');
+ghost12.textContent = '12';
+ghost12.className = 'ghost12';
+let twelveMessageIndex = 0;
+ghost12.addEventListener('click', () => {
+  ghost12.classList.remove('wiggle');
+  void ghost12.offsetWidth;          // restart the animation
+  ghost12.classList.add('wiggle');
+  const messages = TWELVE_MESSAGES[lang];
+  showToast(messages[twelveMessageIndex % messages.length]);
+  twelveMessageIndex += 1;
+});
+ghostSlot.appendChild(ghost12);
+
+slider.addEventListener('input', () => setDimension(+slider.value, true));
+
+/* rotation pause / resume + view reset */
+const btnRotate = $('btnRotate');
+function syncRotateBtn(){
+  btnRotate.textContent = autoRotate ? UI[lang].pause : UI[lang].rotate;
+  btnRotate.setAttribute('aria-label', btnRotate.textContent);
+  btnRotate.setAttribute('aria-pressed', String(autoRotate));
+}
+btnRotate.addEventListener('click', () => { autoRotate = !autoRotate; syncRotateBtn(); });
+$('btnReset').addEventListener('click', () => {
+  yaw = YAW0; pitch = PITCH0; rotT = ROT0; setZoomT(1);
+  showToast(UI[lang].toastReset, 2800);
+});
+
+/* ---------- zoom ---------- */
+const zoomVal = $('zoomVal');
+function setZoomT(z){
+  zoomT = clamp(z, 0.35, 4);
+  zoomVal.textContent = '×' + zoomT.toFixed(1);
+}
+$('zoomIn').addEventListener('click', () => setZoomT(zoomT * 1.3));
+$('zoomOut').addEventListener('click', () => setZoomT(zoomT / 1.3));
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  setZoomT(zoomT * Math.exp(-e.deltaY * 0.0014));
+}, {passive: false});
+
+/* ---------- line boost ---------- */
+function setBoost(v){
+  boost = v;
+  btnBoost.classList.toggle('on', v);
+  btnBoost.setAttribute('aria-pressed', String(v));
+}
+btnBoost.addEventListener('click', () => { boostTouched = true; setBoost(!boost); });
+
+/* ---------- drag rotation + pinch zoom ---------- */
+let dragging = false, px = 0, py = 0;
+const pointers = new Map();
+let pinchBase = 0, pinchZoom0 = 1;
+
+canvas.addEventListener('pointerdown', e => {
+  if(e.pointerType === 'mouse' && e.button !== 0) return;
+  pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  canvas.setPointerCapture(e.pointerId);
+  if(pointers.size === 2){
+    dragging = false;
+    const [a, b] = [...pointers.values()];
+    pinchBase = Math.hypot(a.x - b.x, a.y - b.y);
+    pinchZoom0 = zoomT;
+  }else if(pointers.size === 1){
+    dragging = true;
+    px = e.clientX; py = e.clientY;
+    canvas.classList.add('dragging');
+  }
+});
+canvas.addEventListener('pointermove', e => {
+  if(!pointers.has(e.pointerId)) return;
+  if(e.pointerType === 'mouse' && e.buttons === 0){
+    // the pointerup was swallowed (e.g. by a context menu) — end the drag
+    endPointer(e);
+    return;
+  }
+  pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  if(pointers.size === 2 && pinchBase > 0){
+    const [a, b] = [...pointers.values()];
+    setZoomT(pinchZoom0 * Math.hypot(a.x - b.x, a.y - b.y) / pinchBase);
+  }else if(dragging){
+    if(Math.ceil(dcur - 1e-6) > 1){
+      yaw   += (e.clientX - px) * 0.006;
+      pitch += (e.clientY - py) * 0.006;
+    }
+    px = e.clientX; py = e.clientY;
+  }
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinchBase = 0;
+  if(pointers.size === 2){
+    // a third finger lifted — re-base the pinch on the remaining pair
+    const [a, b] = [...pointers.values()];
+    pinchBase = Math.hypot(a.x - b.x, a.y - b.y);
+    pinchZoom0 = zoomT;
+  }else if(pointers.size === 1){
+    const p = [...pointers.values()][0];
+    px = p.x; py = p.y;
+    dragging = true;
+  }else if(pointers.size === 0){
+    dragging = false;
+    canvas.classList.remove('dragging');
+  }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('dblclick', () => {
+  if(reduced){ rotT += 0.8; }
+  else{ spinVel = 16; }
+  showToast(UI[lang].toastHyperspin, 2800);
+});
+
+/* ---------- text size ---------- */
+function setFontScale(i){
+  const next = Number(i);
+  fsIndex = clamp(Number.isFinite(next) ? Math.round(next) : 2, 0, FS_STEPS.length - 1);
+  document.documentElement.style.setProperty('--fs', FS_STEPS[fsIndex]);
+  try{ localStorage.setItem('dimviz-fs', String(fsIndex)); }catch(err){ /* sandboxed storage */ }
+}
+$('fontDn').addEventListener('click', () => setFontScale(fsIndex - 1));
+$('fontUp').addEventListener('click', () => setFontScale(fsIndex + 1));
+
+/* ---------- language ---------- */
+function applyLang(l){
+  lang = l;
+  document.documentElement.lang = l === 'ja' ? 'ja' : 'en';
+  document.documentElement.setAttribute('data-lang', l);
+  const u = UI[l];
+  $('ttl').textContent = u.title;
+  $('tag').textContent = u.tag;
+  $('btnReset').textContent = u.reset;
+  $('btnReset').setAttribute('aria-label', u.reset);
+  $('hint').textContent = u.hint;
+  $('btnBoost').textContent = u.boost;
+  $('btnBoost').setAttribute('aria-label', u.boost);
+  $('dimUnit').textContent = u.unit;
+  $('zoomIn').setAttribute('aria-label', u.zoomIn);
+  $('zoomOut').setAttribute('aria-label', u.zoomOut);
+  $('fontUp').setAttribute('aria-label', u.fontUp);
+  $('fontDn').setAttribute('aria-label', u.fontDn);
+  slider.setAttribute('aria-label', u.slider);
+  document.querySelector('.stage').setAttribute('aria-label', u.stage);
+  ['kV','kE','kF','kC','kD'].forEach((id, i) => { $(id).textContent = u.stats[i]; });
+  tickBtns.forEach((b, i) => b.setAttribute('aria-label', u.tick(i + 1)));
+  ghost12.setAttribute('aria-label', u.twelveAria);
+  $('langEN').setAttribute('aria-label', u.langEN);
+  $('langJA').setAttribute('aria-label', u.langJA);
+  $('langEN').classList.toggle('on', l === 'en');
+  $('langJA').classList.toggle('on', l === 'ja');
+  $('langEN').setAttribute('aria-pressed', String(l === 'en'));
+  $('langJA').setAttribute('aria-pressed', String(l === 'ja'));
+  syncRotateBtn();
+  renderDimTexts(target);
+  renderObservatoryLog(target);
+  try{ localStorage.setItem('dimviz-lang', l); }catch(err){ /* sandboxed storage */ }
+}
+$('langEN').addEventListener('click', () => applyLang('en'));
+$('langJA').addEventListener('click', () => applyLang('ja'));
+
+/* ---------- init ---------- */
+(function init(){
+  let savedLang = null, savedFs = null;
+  try{
+    savedLang = localStorage.getItem('dimviz-lang');
+    savedFs = localStorage.getItem('dimviz-fs');
+  }catch(err){ /* sandboxed storage */ }
+  applyLang(savedLang === 'ja' ? 'ja' : 'en');   // default: EN
+  setFontScale(Number.isFinite(+savedFs) && savedFs !== null ? +savedFs : 2); // default: two steps up
+  renderStats(3);
+  setZoomT(1);
+})();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
