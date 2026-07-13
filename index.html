@@ -123,29 +123,77 @@ main{
   min-width:0;
   min-height:0;
   overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 52% 48%,hsl(var(--hue) 60% 12% / .28),transparent 48%),
+    linear-gradient(145deg,#050914 0%,#070d1a 46%,#030711 100%);
 }
 .stage::before{
   content:"";
   position:absolute;
   inset:0;
+  z-index:0;
   background:
-    radial-gradient(closest-side at 50% 52%, hsl(var(--hue) 55% 13% / .55), transparent 78%),
+    radial-gradient(closest-side at 50% 52%,hsl(var(--hue) 55% 13% / .48),transparent 78%),
     repeating-linear-gradient(0deg, transparent 0 47px, hsl(222 40% 60% / .045) 47px 48px),
     repeating-linear-gradient(90deg, transparent 0 47px, hsl(222 40% 60% / .045) 47px 48px);
   transition:background .6s;
   pointer-events:none;
 }
+.cosmic-field{
+  position:absolute;
+  inset:-12%;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+  user-select:none;
+}
+.cosmic-field::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 24% 34%,hsl(var(--hue) 72% 42% / .14),transparent 32%),
+    radial-gradient(ellipse at 78% 62%,hsl(calc(var(--hue) + 54) 70% 38% / .11),transparent 29%),
+    radial-gradient(circle at 54% 46%,hsl(42 68% 54% / .045),transparent 22%);
+  filter:blur(18px) saturate(1.18);
+  transform:translate3d(-2%,1%,0) scale(1.02);
+  animation:nebula-drift 24s ease-in-out infinite alternate;
+}
+.cosmic-field::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:clamp(360px,72vw,1040px);
+  aspect-ratio:1.8;
+  border:1px solid hsl(var(--hue) 58% 68% / .075);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 42px hsl(var(--hue) 52% 66% / .025),
+    0 0 90px hsl(var(--hue) 62% 44% / .05);
+  transform:translate(-50%,-50%) rotate(-12deg) scale(.98);
+  animation:orbit-breathe 18s ease-in-out infinite alternate;
+}
+@keyframes nebula-drift{
+  to{transform:translate3d(3%,-2%,0) scale(1.08)}
+}
+@keyframes orbit-breathe{
+  to{transform:translate(-50%,-50%) rotate(-8deg) scale(1.035);opacity:.72}
+}
+.stage.motion-paused .cosmic-field::before,
+.stage.motion-paused .cosmic-field::after{animation-play-state:paused}
 .ai-watermark{
   position:absolute;
   inset:0;
-  z-index:0;
+  z-index:1;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:clamp(14px,3vw,42px);
   color:var(--ink);
   opacity:.06;
-  transform:translateY(3%);
+  transform:translate(-8%,24%) rotate(-3deg);
   transition:opacity .6s;
   pointer-events:none;
   user-select:none;
@@ -166,7 +214,7 @@ main{
 .ghost{
   position:absolute;
   inset:0;
-  z-index:0;
+  z-index:1;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -177,12 +225,13 @@ main{
   user-select:none;
   pointer-events:none;
   line-height:1;
+  transform:translate(10%,-20%) rotate(2deg);
   transition:color .6s;
 }
 canvas#cv{
   position:absolute;
   inset:0;
-  z-index:1;
+  z-index:2;
   width:100%;
   height:100%;
   cursor:grab;
@@ -191,7 +240,7 @@ canvas#cv{
 canvas#cv.dragging{cursor:grabbing}
 .observatory-log{
   position:absolute;
-  z-index:2;
+  z-index:3;
   top:16px;
   left:18px;
   width:min(430px,calc(100% - 154px));
@@ -219,7 +268,7 @@ canvas#cv.dragging{cursor:grabbing}
 }
 .hint{
   position:absolute;
-  z-index:2;
+  z-index:3;
   left:18px;
   bottom:14px;
   font-family:var(--mono);
@@ -230,7 +279,7 @@ canvas#cv.dragging{cursor:grabbing}
 }
 .toast{
   position:absolute;
-  z-index:4;
+  z-index:5;
   left:50%;
   bottom:58px;
   transform:translate(-50%,12px);
@@ -252,7 +301,7 @@ canvas#cv.dragging{cursor:grabbing}
 /* stage tools (zoom + boost) */
 .stage-tools{
   position:absolute;
-  z-index:3;
+  z-index:4;
   top:14px;
   right:14px;
   display:flex;
@@ -563,7 +612,7 @@ input[type=range]::-moz-range-thumb{
   main{grid-template-columns:1fr}
   .stage{height:52vh;min-height:320px}
   .rail{border-left:none;border-top:1px solid var(--line)}
-  .ghost{font-size:52vmin}
+  .ghost{font-size:48vmin;transform:translate(9%,-22%) rotate(2deg)}
 }
 @media (max-width:600px){
   header{
@@ -590,13 +639,14 @@ input[type=range]::-moz-range-thumb{
   .rail{padding-inline:20px}
   .ai-watermark{
     gap:10px;
-    transform:translateY(3%) rotate(-2deg);
+    transform:translate(-4%,24%) rotate(-2deg);
   }
   .ai-watermark svg{width:clamp(58px,20vw,84px)}
   .codex-word{
     font-size:clamp(42px,15vw,70px);
     letter-spacing:.1em;
   }
+  .ghost{font-size:46vmin;transform:translate(10%,-23%) rotate(2deg)}
   .observatory-log{
     top:14px;
     left:12px;
@@ -616,6 +666,7 @@ input[type=range]::-moz-range-thumb{
 }
 @media (prefers-reduced-motion:reduce){
   .fadebox,.ghost,.stage::before,.ai-watermark,.observatory-log,.toast{transition:none}
+  .cosmic-field::before,.cosmic-field::after{animation:none}
   .ghost-slot button.ghost12.wiggle{animation:none}
 }
 </style>
@@ -641,6 +692,7 @@ input[type=range]::-moz-range-thumb{
 
   <main>
     <section class="stage" aria-label="Hypercube projection view">
+      <div class="cosmic-field" aria-hidden="true"></div>
       <div class="ai-watermark" data-brand="ChatGPT" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false">
           <path fill="currentColor" d="M22.281 9.821a5.984 5.984 0 0 0-.515-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.98 4.18a5.984 5.984 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.984 5.984 0 0 0 13.259 24a6.055 6.055 0 0 0 5.771-4.206 5.989 5.989 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.434a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.778-2.758a.75.75 0 0 0 .375-.65v-6.736l2.019 1.166a.068.068 0 0 1 .036.054v5.577a4.49 4.49 0 0 1-4.473 4.468zm-9.73-4.125a4.463 4.463 0 0 1-.534-3.013l.141.085 4.783 2.758a.75.75 0 0 0 .75 0l5.833-3.367v2.332a.067.067 0 0 1-.03.061L9.645 19.95a4.489 4.489 0 0 1-6.114-1.641zM2.34 8.896a4.47 4.47 0 0 1 2.38-1.973V12.51a.75.75 0 0 0 .375.65l5.833 3.367-2.019 1.166a.067.067 0 0 1-.066.003l-4.828-2.786A4.49 4.49 0 0 1 2.34 8.896zm16.81 3.608-5.833-3.367 2.019-1.166a.067.067 0 0 1 .066-.003l4.828 2.786a4.49 4.49 0 0 1-.676 8.013V13.18a.75.75 0 0 0-.404-.676zm2.475-3.548-.141-.085-4.783-2.758a.75.75 0 0 0-.75 0L10.118 9.48V7.147a.067.067 0 0 1 .03-.06L14.976 4.3a4.49 4.49 0 0 1 6.65 4.656zM8.32 12.683 6.3 11.517a.068.068 0 0 1-.035-.054V5.886a4.49 4.49 0 0 1 7.35-3.427l-.141.081-4.778 2.758a.75.75 0 0 0-.375.65zm1.097-1.904 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"/>
@@ -715,6 +767,7 @@ input[type=range]::-moz-range-thumb{
    ============================================================ */
 
 const $ = id => document.getElementById(id);
+const stage = document.querySelector('.stage');
 const canvas = $('cv');
 const ctx = canvas.getContext('2d');
 
@@ -953,6 +1006,89 @@ function resize(){
 new ResizeObserver(resize).observe(canvas);
 resize();
 
+/* ---------- deep-space particles ---------- */
+const SPACE_LAYER_CONFIG = [
+  {count:28,size:.48,alpha:.08,speed:.0015,shift:-16,sat:54,light:76},
+  {count:18,size:.78,alpha:.13,speed:.0036,shift:12,sat:68,light:82},
+  {count:10,size:1.16,alpha:.20,speed:.0075,shift:38,sat:76,light:88},
+];
+let particleSeed = 0x11d0c0de;
+function spaceRand(){
+  particleSeed = (particleSeed * 1664525 + 1013904223) >>> 0;
+  return particleSeed / 4294967296;
+}
+const spaceLayers = SPACE_LAYER_CONFIG.map((layer, layerIndex) =>
+  Array.from({length:layer.count}, () => ({
+    x:spaceRand(),
+    y:spaceRand(),
+    dx:.18 + spaceRand() * .34,
+    dy:-.72 - spaceRand() * .38,
+    speed:layer.speed * (.72 + spaceRand() * .56),
+    phase:spaceRand() * Math.PI * 2,
+    depth:(layerIndex + 1) / SPACE_LAYER_CONFIG.length,
+  }))
+);
+let spaceTime = 0;
+const wrapUnit = value => ((value % 1) + 1) % 1;
+
+function drawSpace(D){
+  const mobile = W < 820;
+  const areaCount = Math.round(W * H / 18000);
+  const normalCap = mobile ? 24 : 56;
+  const denseCap = mobile ? 16 : 24;
+  const total = reduced
+    ? 12
+    : Math.min(clamp(areaCount, mobile ? 12 : 20, normalCap), D >= 9 ? denseCap : normalCap);
+  const counts = [
+    Math.ceil(total * .5),
+    Math.ceil(total * .32),
+    0,
+  ];
+  counts[2] = total - counts[0] - counts[1];
+
+  const hue = 160 + (dcur - 1) * 18;
+  const yawParallax = Math.sin(yaw) * .008;
+  const pitchParallax = Math.sin(pitch) * .006;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+
+  for(let layerIndex = 0; layerIndex < spaceLayers.length; layerIndex++){
+    const config = SPACE_LAYER_CONFIG[layerIndex];
+    const layer = spaceLayers[layerIndex];
+    const count = Math.min(counts[layerIndex], layer.length);
+    const shimmer = reduced ? 1 : .84 + .16 * Math.sin(spaceTime * (.42 + layerIndex * .17));
+    ctx.globalAlpha = config.alpha * shimmer;
+    ctx.fillStyle = `hsl(${hue + config.shift} ${config.sat}% ${config.light}%)`;
+    ctx.beginPath();
+    for(let i = 0; i < count; i++){
+      const p = layer[i];
+      const x = wrapUnit(p.x + spaceTime * p.speed * p.dx + yawParallax * p.depth) * W;
+      const y = wrapUnit(p.y + spaceTime * p.speed * p.dy + pitchParallax * p.depth) * H;
+      const pulse = reduced ? 1 : .88 + .12 * Math.sin(spaceTime * .9 + p.phase);
+      const radius = config.size * pulse;
+      ctx.moveTo(x + radius, y);
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+    }
+    ctx.fill();
+
+    if(layerIndex === 2 && !reduced){
+      ctx.globalAlpha = .075;
+      ctx.strokeStyle = `hsl(${hue + 30} 74% 84%)`;
+      ctx.lineWidth = .6;
+      ctx.beginPath();
+      for(let i = 0; i < count; i++){
+        const p = layer[i];
+        const x = wrapUnit(p.x + spaceTime * p.speed * p.dx + yawParallax * p.depth) * W;
+        const y = wrapUnit(p.y + spaceTime * p.speed * p.dy + pitchParallax * p.depth) * H;
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - p.speed * p.dx * W * 1.4, y - p.speed * p.dy * H * 1.4);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
 /* ---------- transform pipeline ---------- */
 const P = new Float64Array(MAXD);   // work vector
 const NB = 8;                       // depth buckets
@@ -1004,6 +1140,7 @@ function draw(){
   ctx.clearRect(0, 0, W, H);
 
   const D = Math.min(MAXD, Math.max(1, Math.ceil(dcur - 1e-6)));
+  drawSpace(D);
   const g = geo(D);
   const pl = planes(D);
 
@@ -1155,6 +1292,7 @@ function frame(now){
   const dt = Math.min((now - lastT) / 1000, 0.1);
   lastT = now;
   if(autoRotate) rotT += dt;
+  if(autoRotate && !reduced) spaceTime += dt;
   // hyperspin burst decays exponentially
   if(spinVel > 0.02){
     rotT += spinVel * dt;
@@ -1332,6 +1470,7 @@ function syncRotateBtn(){
   btnRotate.textContent = autoRotate ? UI[lang].pause : UI[lang].rotate;
   btnRotate.setAttribute('aria-label', btnRotate.textContent);
   btnRotate.setAttribute('aria-pressed', String(autoRotate));
+  stage.classList.toggle('motion-paused', !autoRotate || reduced);
 }
 btnRotate.addEventListener('click', () => { autoRotate = !autoRotate; syncRotateBtn(); });
 $('btnReset').addEventListener('click', () => {
@@ -1453,7 +1592,7 @@ function applyLang(l){
   $('fontUp').setAttribute('aria-label', u.fontUp);
   $('fontDn').setAttribute('aria-label', u.fontDn);
   slider.setAttribute('aria-label', u.slider);
-  document.querySelector('.stage').setAttribute('aria-label', u.stage);
+  stage.setAttribute('aria-label', u.stage);
   ['kV','kE','kF','kC','kD'].forEach((id, i) => { $(id).textContent = u.stats[i]; });
   tickBtns.forEach((b, i) => b.setAttribute('aria-label', u.tick(i + 1)));
   ghost12.setAttribute('aria-label', u.twelveAria);
