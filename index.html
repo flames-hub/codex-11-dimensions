@@ -206,7 +206,10 @@ main{
   width:clamp(84px,15vmin,172px);
   height:auto;
   flex:none;
+  transition:opacity .28s,filter .28s;
 }
+.stage.codex-off .ai-watermark svg{opacity:0;filter:blur(8px)}
+.stage.codex-off .codex-readout{opacity:0!important}
 .codex-word{
   font-family:var(--mono);
   font-size:clamp(58px,9.2vw,138px);
@@ -307,6 +310,39 @@ canvas#cv.dragging{cursor:grabbing}
   font-size:calc(var(--fs)*8px);
   line-height:1.5;
 }
+.section-scanner{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  bottom:16px;
+  width:min(330px,calc(100% - 430px));
+  min-width:250px;
+  padding:9px 12px 10px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,hsl(220 48% 7% / .78),hsl(var(--hue) 48% 10% / .72));
+  border:1px solid hsl(var(--hue) 58% 68% / .3);
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  font-family:var(--mono);
+  box-shadow:0 12px 34px hsl(220 80% 2% / .48),0 0 28px hsl(var(--hue) 80% 54% / .07);
+}
+.section-scanner[hidden]{display:none}
+.scanner-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:hsl(var(--hue) 72% 78% / .84);
+  font-size:calc(var(--fs)*8px);
+  letter-spacing:.16em;
+}
+.scanner-head output{color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.08em}
+.section-scanner input{
+  width:100%;
+  margin-top:8px;
+  accent-color:hsl(var(--hue) 76% 64%);
+  cursor:ew-resize;
+}
+.stage.scanner-active .codex-readout{opacity:.18}
 .hint{
   position:absolute;
   z-index:3;
@@ -534,7 +570,8 @@ canvas#cv.dragging{cursor:grabbing}
 .stage.compile-active .observatory-log,
 .stage.compile-active .stage-tools,
 .stage.compile-active .hint,
-.stage.compile-active .codex-readout{opacity:.18}
+.stage.compile-active .codex-readout,
+.stage.compile-active .section-scanner{opacity:.18}
 .breach-overlay{
   position:absolute;
   z-index:10;
@@ -623,6 +660,14 @@ canvas#cv.dragging{cursor:grabbing}
 }
 .stage-tools button:hover{border-color:var(--gold-dim);color:var(--gold)}
 .stage-tools button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.stage-tools button:disabled{opacity:.38;cursor:wait}
+#app.clip-lock header button,
+#app.clip-lock footer button,
+#app.clip-lock footer input,
+#app.clip-lock .rail,
+#app.clip-lock canvas,
+#app.clip-lock .stage-tools button:not(#btnClip){pointer-events:none}
+#app.clip-lock #btnClip{pointer-events:auto}
 .stage-tools button.boost{
   font-size:calc(var(--fs)*10px);
   letter-spacing:.14em;
@@ -634,6 +679,29 @@ canvas#cv.dragging{cursor:grabbing}
   border-color:var(--gold-dim);
   box-shadow:0 0 10px hsl(42 70% 55% / .25);
 }
+.stage-tools button.lab-tool{
+  width:auto;
+  max-width:138px;
+  height:27px;
+  padding:0 9px;
+  color:var(--mut);
+  font-size:calc(var(--fs)*8px);
+  line-height:1;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+.stage-tools button.lab-tool[aria-pressed="true"]{
+  color:hsl(var(--hue) 72% 78%);
+  border-color:hsl(var(--hue) 64% 62% / .55);
+  box-shadow:0 0 13px hsl(var(--hue) 72% 56% / .16);
+}
+.stage-tools button.lab-tool[aria-disabled="true"]{opacity:.4}
+.stage-tools button.clip.is-recording{
+  color:var(--gold);
+  border-color:var(--gold-dim);
+  animation:clip-recording .72s ease-in-out infinite alternate;
+}
+@keyframes clip-recording{to{box-shadow:0 0 18px hsl(42 82% 58% / .35)}}
 .zoom-val{
   font-family:var(--mono);
   font-size:calc(var(--fs)*9px);
@@ -962,6 +1030,16 @@ input[type=range]::-moz-range-thumb{
   }
   .codex-readout-mode{font-size:calc(var(--fs)*11px)}
   .codex-readout-desc{font-size:calc(var(--fs)*7px)}
+  .section-scanner{
+    left:12px;
+    right:126px;
+    bottom:12px;
+    width:auto;
+    min-width:0;
+    transform:none;
+  }
+  .stage.scanner-active .codex-readout{opacity:0}
+  .stage.scanner-active .hint{bottom:62px}
   .observatory-text{font-size:calc(var(--fs)*8px);line-height:1.5}
   .compile-experience{padding:10px}
   .compile-panel,.compile-experience.is-running .compile-panel{padding:18px 16px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
@@ -987,6 +1065,7 @@ input[type=range]::-moz-range-thumb{
   .cosmic-field::before,.cosmic-field::after{animation:none}
   .ghost-slot button.ghost12.wiggle{animation:none}
   .stage.dimension-pulse::after,#app.reality-breach .stage{animation:none}
+  .stage-tools button.clip.is-recording{animation:none}
 }
 </style>
 </head>
@@ -1026,7 +1105,17 @@ input[type=range]::-moz-range-thumb{
         <button id="zoomOut" aria-label="Zoom out">−</button>
         <div class="zoom-val" id="zoomVal">×1.0</div>
         <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
+        <button id="btnCodex" class="lab-tool" aria-label="Codex icon on" aria-pressed="true">CODEX · ON</button>
+        <button id="btnScanner" class="lab-tool" aria-label="Cross-section scanner" aria-pressed="false" aria-disabled="true">SECTION · OFF</button>
+        <button id="btnClip" class="lab-tool clip" aria-label="Save five second loop">SAVE 5S LOOP</button>
         <button id="btnPassport" class="passport" aria-label="Open dimensional passport">PASSPORT 1/11</button>
+      </div>
+      <div class="section-scanner" id="sectionScanner" role="group" aria-labelledby="scannerLabel" hidden>
+        <div class="scanner-head">
+          <label id="scannerLabel" for="scanSlider">SECTION · X₄</label>
+          <output id="scanValue" for="scanSlider">0% · 0.000</output>
+        </div>
+        <input type="range" id="scanSlider" min="-100" max="100" step="1" value="0" aria-label="Cross-section position">
       </div>
       <div class="observatory-log" role="note">
         <span class="observatory-label" id="logLabel">OBSERVATORY LOG · 03</span>
@@ -1145,6 +1234,8 @@ const app = $('app');
 const stage = document.querySelector('.stage');
 const canvas = $('cv');
 const ctx = canvas.getContext('2d');
+const clipCanvas = document.createElement('canvas');
+const clipCtx = clipCanvas.getContext('2d');
 const logoPath = document.querySelector('.ai-watermark path');
 
 const MAXD = 11;
@@ -1160,6 +1251,12 @@ const UI = {
     pause:'⏸ Pause', rotate:'▶ Rotate', reset:'Reset view',
     hint:'DRAG rotate · WHEEL zoom · DBLCLICK hyperspin · SLIDER dimension',
     boost:'LINE BOOST',
+    codexOn:'CODEX · ON', codexOff:'CODEX · OFF',
+    scannerOn:'SECTION · ON', scannerOff:'SECTION · OFF',
+    scannerLabel:axis => 'SECTION · X' + axis,
+    scannerAria:'Cross-section scanner', scanAria:'Cross-section position',
+    clip:'SAVE 5S LOOP', clipRecording:pct => 'REC ' + pct + '%',
+    clipEncoding:'ENCODING…', clipDownload:ext => 'DOWNLOAD ' + ext,
     langEN:'English', langJA:'Japanese',
     zoomIn:'Zoom in', zoomOut:'Zoom out',
     fontUp:'Larger text', fontDn:'Smaller text',
@@ -1176,6 +1273,13 @@ const UI = {
     toastAll:'All 11 dimensions visited — there is no going back to Flatland now.',
     toastReset:'View reset. The universe itself was not moved.',
     toastHyperspin:'Hyperspin engaged. Loose dimensions secured.',
+    toastScannerLocked:'Cross-sections unlock in 4D. Three dimensions are still suspiciously solid.',
+    toastScannerIcon:'Turn the Codex specimen on before slicing it. Ethics paperwork is pending.',
+    toastClipUnavailable:'This browser cannot bottle five seconds of spacetime.',
+    toastClipIntro:'Enter the observatory before recording a loop.',
+    toastClipDone:ext => ext + ' loop ready. Five seconds of reality have been contained.',
+    toastClipAborted:'Recording stopped because this dimension left the visible tab.',
+    toastClipNeedsCodex:'Turn CODEX on before recording the specimen loop.',
   },
   ja: {
     title:'次元の様相',
@@ -1183,6 +1287,12 @@ const UI = {
     pause:'⏸ 回転停止', rotate:'▶ 回転再開', reset:'視点リセット',
     hint:'DRAG 回転 · WHEEL ズーム · DBLCLICK ハイパースピン · SLIDER 次元',
     boost:'線を強調',
+    codexOn:'CODEX · ON', codexOff:'CODEX · OFF',
+    scannerOn:'断面 · ON', scannerOff:'断面 · OFF',
+    scannerLabel:axis => '断面走査 · X' + axis,
+    scannerAria:'断面スキャナー', scanAria:'断面位置',
+    clip:'5秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
+    clipEncoding:'変換中…', clipDownload:ext => ext + 'を保存',
     langEN:'英語', langJA:'日本語',
     zoomIn:'ズームイン', zoomOut:'ズームアウト',
     fontUp:'文字を大きく', fontDn:'文字を小さく',
@@ -1199,6 +1309,13 @@ const UI = {
     toastAll:'全11次元を踏破！ もう平面の暮らしには戻れません。',
     toastReset:'視点をリセットしました。宇宙そのものは動かしていません。',
     toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
+    toastScannerLocked:'断面走査は4次元から解禁です。3次元はまだ妙に頑丈です。',
+    toastScannerIcon:'切る前にCodex観測対象をONにしてください。倫理書類は審査中です。',
+    toastClipUnavailable:'このブラウザでは5秒分の時空を瓶詰めできません。',
+    toastClipIntro:'ループを録画する前に観測室へ入ってください。',
+    toastClipDone:ext => ext + 'ループの準備完了。5秒分の現実を封じ込めました。',
+    toastClipAborted:'別タブへ移動したため、時空の録画を中止しました。',
+    toastClipNeedsCodex:'観測対象のループを録る前にCODEXをONにしてください。',
   },
 };
 
@@ -1471,6 +1588,12 @@ let yaw = 0.55, pitch = 0.32;   // extra rotation from dragging
 let zoom = 1, zoomT = 1;        // current / target zoom
 let boost = false, boostTouched = false;
 let spinVel = 0;                // hyperspin burst velocity (double-click)
+let codexIconVisible = true;    // deliberately not persisted: every visit starts ON
+let scannerActive = false, scanPosition = 0;
+let lastScanSegments = 0;
+let codexReveal = 1, codexRevealHold = .45;
+const CODEX_EVENT_DURATION = 1.15;
+let codexEventDim = 3, codexEventAge = CODEX_EVENT_DURATION;
 const YAW0 = 0.55, PITCH0 = 0.32, ROT0 = 7.0;
 const FS_STEPS = [1, 1.12, 1.25, 1.4, 1.6];
 let fsIndex = 2;                // default: two steps above the original scale
@@ -1483,6 +1606,11 @@ let soundEnabled = false, audioCtx = null, audioMaster = null;
 const activeAudioNodes = new Set();
 let passportBlob = null, passportUrl = '', passportWasRotating = false;
 let expeditionSeed = 0;
+let clipState = 'idle', clipStartTime = 0, clipLastDim = 1;
+let clipRecorder = null, clipStream = null, clipChunks = [], clipSnapshot = null;
+let clipBlob = null, clipBlobUrl = '', clipExtension = '';
+let clipAbortReason = '';
+const clipIsBusy = () => clipState === 'recording' || clipState === 'encoding';
 
 /* ---------- canvas ---------- */
 let W = 0, H = 0, DPR = 1;
@@ -1621,6 +1749,13 @@ function prepareFinaleTargets(){
 const CODEX_CONTOUR_SAMPLES = 360;
 const CODEX_DEPTH_BUCKETS = 8;
 const codexBuckets = Array.from({length:CODEX_DEPTH_BUCKETS}, () => []);
+const CODEX_MESH_GRID = 32;
+const CODEX_MESH_DEPTH_BUCKETS = 8;
+const CODEX_MESH_LIGHT_BUCKETS = 4;
+const codexMeshBuckets = Array.from(
+  {length:CODEX_MESH_DEPTH_BUCKETS * CODEX_MESH_LIGHT_BUCKETS},
+  () => []
+);
 const codexAxisProfile = new Float32Array(48);
 let codexPath2D = null;
 let codexEntityReady = false;
@@ -1634,6 +1769,16 @@ let codexContourSX = new Float32Array(0);
 let codexContourSY = new Float32Array(0);
 let codexContourDP = new Float32Array(0);
 const codexContourBreaks = new Uint8Array(CODEX_CONTOUR_SAMPLES);
+let codexMeshReady = false;
+let codexMeshVertexCount = 0, codexMeshTriangleCount = 0;
+let codexMeshCoords = new Float32Array(0);
+let codexMeshTriangles = new Uint32Array(0);
+let codexMeshKinds = new Uint8Array(0);
+let codexMeshSX = new Float32Array(0);
+let codexMeshSY = new Float32Array(0);
+let codexMeshDP = new Float32Array(0);
+const codexMeshAxisMin = new Float32Array(MAXD);
+const codexMeshAxisMax = new Float32Array(MAXD);
 let e8Coords = new Float32Array(0);
 let e8SX = new Float32Array(0);
 let e8SY = new Float32Array(0);
@@ -1689,6 +1834,81 @@ function prepareE8Roots(){
   e8DP = new Float32Array(e8Count);
 }
 
+function prepareCodexMesh(pixels){
+  const G = CODEX_MESH_GRID;
+  const occupied = new Uint8Array(G * G);
+  for(let gy = 0; gy < G; gy++){
+    for(let gx = 0; gx < G; gx++){
+      const px = clamp(Math.floor((gx + .5) / G * 96), 0, 95);
+      const py = clamp(Math.floor((gy + .5) / G * 96), 0, 95);
+      occupied[gy * G + gx] = pixels[(py * 96 + px) * 4 + 3] > 48 ? 1 : 0;
+    }
+  }
+
+  const coords = [];
+  const triangles = [];
+  const kinds = [];
+  const vertexMap = new Int32Array((G + 1) * (G + 1) * 2);
+  vertexMap.fill(-1);
+  const lifted = new Float32Array(MAXD);
+  const vertex = (gx, gy, side) => {
+    const key = side * (G + 1) * (G + 1) + gy * (G + 1) + gx;
+    if(vertexMap[key] >= 0) return vertexMap[key];
+    const x = gx / G * 2 - 1;
+    const y = gy / G * 2 - 1;
+    const crossing = Math.sin(Math.atan2(y, x) * 3 + Math.hypot(x, y) * 4) * .07;
+    liftCodexPoint(lifted, 0, x, y, (side ? .32 : -.32) + crossing, side ? .48 : -.48);
+    const index = coords.length / MAXD;
+    for(let k = 0; k < MAXD; k++) coords.push(lifted[k]);
+    vertexMap[key] = index;
+    return index;
+  };
+  const tri = (a, b, c, kind) => {
+    if(a === b || b === c || c === a) return;
+    triangles.push(a, b, c);
+    kinds.push(kind);
+  };
+  const wall = (fa, fb, ba, bb) => {
+    tri(fa, fb, bb, 1);
+    tri(fa, bb, ba, 1);
+  };
+
+  for(let gy = 0; gy < G; gy++){
+    for(let gx = 0; gx < G; gx++){
+      if(!occupied[gy * G + gx]) continue;
+      const f00 = vertex(gx, gy, 1), f10 = vertex(gx + 1, gy, 1);
+      const f01 = vertex(gx, gy + 1, 1), f11 = vertex(gx + 1, gy + 1, 1);
+      const b00 = vertex(gx, gy, 0), b10 = vertex(gx + 1, gy, 0);
+      const b01 = vertex(gx, gy + 1, 0), b11 = vertex(gx + 1, gy + 1, 0);
+      tri(f00, f10, f11, 2); tri(f00, f11, f01, 2);
+      tri(b00, b11, b10, 0); tri(b00, b01, b11, 0);
+      if(gy === 0 || !occupied[(gy - 1) * G + gx]) wall(f00, f10, b00, b10);
+      if(gx === G - 1 || !occupied[gy * G + gx + 1]) wall(f10, f11, b10, b11);
+      if(gy === G - 1 || !occupied[(gy + 1) * G + gx]) wall(f11, f01, b11, b01);
+      if(gx === 0 || !occupied[gy * G + gx - 1]) wall(f01, f00, b01, b00);
+    }
+  }
+
+  codexMeshCoords = Float32Array.from(coords);
+  codexMeshTriangles = Uint32Array.from(triangles);
+  codexMeshKinds = Uint8Array.from(kinds);
+  codexMeshVertexCount = codexMeshCoords.length / MAXD;
+  codexMeshTriangleCount = codexMeshTriangles.length / 3;
+  codexMeshSX = new Float32Array(codexMeshVertexCount);
+  codexMeshSY = new Float32Array(codexMeshVertexCount);
+  codexMeshDP = new Float32Array(codexMeshVertexCount);
+  codexMeshAxisMin.fill(Infinity);
+  codexMeshAxisMax.fill(-Infinity);
+  for(let i = 0; i < codexMeshVertexCount; i++){
+    for(let k = 0; k < MAXD; k++){
+      const value = codexMeshCoords[i * MAXD + k];
+      if(value < codexMeshAxisMin[k]) codexMeshAxisMin[k] = value;
+      if(value > codexMeshAxisMax[k]) codexMeshAxisMax[k] = value;
+    }
+  }
+  codexMeshReady = codexMeshVertexCount > 256 && codexMeshTriangleCount > 500;
+}
+
 function prepareCodexDimensionIcon(){
   const interior = [];
   try{
@@ -1700,6 +1920,7 @@ function prepareCodexDimensionIcon(){
     sctx.fillStyle = '#fff';
     sctx.fill(codexPath2D);
     const pixels = sctx.getImageData(0, 0, 96, 96).data;
+    prepareCodexMesh(pixels);
     for(let py = 3; py < 96; py += 5){
       for(let px = 3; px < 96; px += 5){
         if(pixels[(py * 96 + px) * 4 + 3] > 48){
@@ -1814,14 +2035,30 @@ function transformCodexSet(source, count, D, cs, sn, planeList, axisScale, sx, s
   return [fmin, fmax, cx, cy, scale];
 }
 
-function drawCodexDimensionalField(hue){
-  if(!codexEntityReady || finaleMix > .94) return;
-  const D = clamp(Math.round(dcur), 1, MAXD);
-  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' ? 1 : .72);
+function codexEventProgress(n){
+  if(reduced || codexEventDim !== n) return 1;
+  return smoothstep(clamp((codexEventAge / CODEX_EVENT_DURATION) / .58, 0, 1));
+}
+function codexEventTail(n){
+  return reduced || codexEventDim !== n ? 0 : 1 - clamp(codexEventAge / CODEX_EVENT_DURATION, 0, 1);
+}
+function triggerCodexEvent(n){
+  codexEventDim = n;
+  codexEventAge = reduced ? CODEX_EVENT_DURATION : 0;
+  codexReveal = 1;
+  codexRevealHold = reduced ? 0 : .45;
+  stage.dataset.eventDimension = String(n);
+}
+
+function drawCodexDimensionalField(D, hue){
+  if(!codexIconVisible || !codexEntityReady || finaleMix > .94) return;
+  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' || clipState === 'recording' ? 1 : .72);
   const cx = W * .5;
   const cy = H * (W < 600 ? .47 : .49);
   const size = Math.min(W, H) * .255 * zoom;
   const t = reduced ? 0 : spaceTime;
+  const eventP = codexEventProgress(D);
+  const eventTail = codexEventTail(D);
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   ctx.strokeStyle = 'hsla(' + (hue + 24) + ',82%,72%,' + (.16 * fade) + ')';
@@ -1862,6 +2099,39 @@ function drawCodexDimensionalField(hue){
       ctx.ellipse(cx, cy, size * (.76 + i * .05), size * (.18 + i * .035), t * .055 + i * Math.PI / 3, 0, Math.PI * 2);
       ctx.stroke();
     }
+  }else if(D === 4){
+    const separation = size * .18 * (1 - eventP) ** 2;
+    for(const side of [-1, 1]){
+      ctx.beginPath();
+      ctx.ellipse(
+        cx + side * separation,
+        cy,
+        size * .76,
+        size * .19,
+        t * .035 + side * (.65 - eventP * .47),
+        0,
+        Math.PI * 2
+      );
+      ctx.stroke();
+    }
+    if(eventTail > .01){
+      ctx.globalAlpha = eventTail * .8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * (.16 + eventP * .68), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }else if(D === 6){
+    for(let i = 0; i < 6; i++){
+      const local = smoothstep(clamp(eventP * 1.45 - i * .07, 0, 1));
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t * .035 + i * Math.PI / 3);
+      ctx.beginPath();
+      ctx.ellipse(size * .2 * local, 0, size * .38 * local, size * .11 * local, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }else if(D <= 7){
     for(let i = 0; i < D; i++){
       ctx.beginPath();
@@ -1890,27 +2160,34 @@ function drawCodexDimensionalField(hue){
     ctx.stroke();
     ctx.fill();
   }else if(D === 9){
+    const segments = W < 600 ? 36 : 56;
+    const pluck = (1 - eventP) ** 2 * Math.sin(eventP * Math.PI * 5);
     for(let band = -4; band <= 4; band++){
       ctx.beginPath();
-      for(let i = 0; i <= 56; i++){
-        const x = cx - size + i / 56 * size * 2;
-        const y = cy + band * size * .045 + Math.sin(i * .33 + t * .8 + band) * size * .026;
+      for(let i = 0; i <= segments; i++){
+        const unit = i / segments;
+        const x = cx - size + unit * size * 2;
+        const envelope = Math.sin(unit * Math.PI);
+        const y = cy + band * size * .045 + Math.sin(i * .33 + t * .8 + band) * size * (.026 + pluck * .06 * envelope);
         if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
     }
   }else if(D === 10){
     for(let branch = 0; branch < 5; branch++){
+      const a = branch * Math.PI * 2 / 5;
+      const mergeRadius = size * .17 * (1 - eventP) ** 2;
       ctx.beginPath();
-      ctx.ellipse(cx, cy, size * (.68 + branch * .035), size * (.16 + branch * .018), t * .025 + branch * Math.PI / 5, 0, Math.PI * 2);
+      ctx.ellipse(cx + Math.cos(a) * mergeRadius, cy + Math.sin(a) * mergeRadius, size * (.68 + branch * .035), size * (.16 + branch * .018), t * .025 + branch * Math.PI / 5, 0, Math.PI * 2);
       ctx.stroke();
     }
   }else{
+    const segments = W < 600 ? 40 : 64;
     for(let band = -5; band <= 5; band++){
       ctx.beginPath();
-      for(let i = 0; i <= 64; i++){
-        const x = cx - size * 1.12 + i / 64 * size * 2.24;
-        const y = cy + band * size * .04 + Math.sin(i * .28 + t * .72 + band * .7) * size * .033;
+      for(let i = 0; i <= segments; i++){
+        const x = cx - size * 1.12 + i / segments * size * 2.24;
+        const y = cy + band * size * .04 * eventP + Math.sin(i * .28 + t * .72 + band * .7) * size * .033;
         if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
@@ -1984,26 +2261,174 @@ function drawE8Projection(D, cs, sn, planeList, axisScale, hue, fade){
   const transformed = transformCodexSet(e8Coords, e8Count, D, cs, sn, planeList, axisScale, e8SX, e8SY, e8DP, 1.52);
   const fmin = transformed[0], fmax = transformed[1];
   const range = Math.max(fmax - fmin, 1e-6);
+  const cx = transformed[2], cy = transformed[3];
+  const eventP = codexEventProgress(8);
+  const eventTail = codexEventTail(8);
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
+  if(eventTail > .02){
+    const spokes = W < 600 ? 16 : 24;
+    ctx.strokeStyle = 'hsla(' + (hue + 20) + ',86%,76%,' + (.18 * eventTail * fade) + ')';
+    ctx.lineWidth = .65;
+    ctx.beginPath();
+    for(let i = 0; i < spokes; i++){
+      const index = Math.floor(i * e8Count / spokes);
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + (e8SX[index] - cx) * eventP, cy + (e8SY[index] - cy) * eventP);
+    }
+    ctx.stroke();
+  }
   ctx.fillStyle = 'hsla(' + (hue + 28) + ',88%,80%,' + (.3 * weight * fade) + ')';
   ctx.beginPath();
   for(let i = 0; i < e8Count; i++){
     const depth = (e8DP[i] - fmin) / range;
     const radius = .7 + depth * 1.05;
-    ctx.moveTo(e8SX[i] + radius, e8SY[i]);
-    ctx.arc(e8SX[i], e8SY[i], radius, 0, Math.PI * 2);
+    const x = cx + (e8SX[i] - cx) * eventP;
+    const y = cy + (e8SY[i] - cy) * eventP;
+    ctx.moveTo(x + radius, y);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
   }
   ctx.fill();
   ctx.restore();
 }
 
+function drawCodexSurfaceMesh(D, hue, fade, meshResult){
+  if(D < 3 || !codexMeshReady || !meshResult) return;
+  const fmin = meshResult[0], range = Math.max(meshResult[1] - meshResult[0], 1e-6);
+  for(let i = 0; i < codexMeshBuckets.length; i++) codexMeshBuckets[i].length = 0;
+  for(let triangle = 0; triangle < codexMeshTriangleCount; triangle++){
+    const offset = triangle * 3;
+    const a = codexMeshTriangles[offset], b = codexMeshTriangles[offset + 1], c = codexMeshTriangles[offset + 2];
+    const abx = codexMeshSX[b] - codexMeshSX[a];
+    const aby = codexMeshSY[b] - codexMeshSY[a];
+    const acx = codexMeshSX[c] - codexMeshSX[a];
+    const acy = codexMeshSY[c] - codexMeshSY[a];
+    const area = abx * acy - aby * acx;
+    if(Math.abs(area) < .03) continue;
+    const edgeProduct = Math.max(Math.hypot(abx, aby) * Math.hypot(acx, acy), 1e-6);
+    const facing = clamp(Math.abs(area) / edgeProduct, 0, 1);
+    const kindBias = codexMeshKinds[triangle] === 1 ? -.14 : codexMeshKinds[triangle] === 2 ? .1 : -.03;
+    const frontBias = area < 0 ? .08 : 0;
+    const light = clamp(Math.floor((.24 + facing * .58 + kindBias + frontBias) * CODEX_MESH_LIGHT_BUCKETS), 0, CODEX_MESH_LIGHT_BUCKETS - 1);
+    const depthValue = (codexMeshDP[a] + codexMeshDP[b] + codexMeshDP[c]) / 3;
+    const depth = clamp(Math.floor((depthValue - fmin) / range * CODEX_MESH_DEPTH_BUCKETS), 0, CODEX_MESH_DEPTH_BUCKETS - 1);
+    codexMeshBuckets[depth * CODEX_MESH_LIGHT_BUCKETS + light].push(triangle);
+  }
+
+  const sectionFade = scannerActive ? .2 : 1;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  for(let depth = 0; depth < CODEX_MESH_DEPTH_BUCKETS; depth++){
+    for(let light = 0; light < CODEX_MESH_LIGHT_BUCKETS; light++){
+      const list = codexMeshBuckets[depth * CODEX_MESH_LIGHT_BUCKETS + light];
+      if(!list.length) continue;
+      const d = depth / (CODEX_MESH_DEPTH_BUCKETS - 1);
+      const l = light / (CODEX_MESH_LIGHT_BUCKETS - 1);
+      ctx.beginPath();
+      for(let i = 0; i < list.length; i++){
+        const offset = list[i] * 3;
+        const a = codexMeshTriangles[offset], b = codexMeshTriangles[offset + 1], c = codexMeshTriangles[offset + 2];
+        ctx.moveTo(codexMeshSX[a], codexMeshSY[a]);
+        ctx.lineTo(codexMeshSX[b], codexMeshSY[b]);
+        ctx.lineTo(codexMeshSX[c], codexMeshSY[c]);
+        ctx.closePath();
+      }
+      ctx.fillStyle = 'hsla(' + (hue + 6 + d * 24) + ',72%,' + (23 + l * 35 + d * 8) + '%,' + ((.14 + l * .1 + d * .045) * fade * sectionFade) + ')';
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+let scanProjectionX = 0, scanProjectionY = 0;
+function projectCodexMeshIntersection(i, j, t, D, cs, sn, planeList, axisScale, projectionScale, emergence){
+  const invNorm = 1 / Math.sqrt(Math.max(dcur, 1));
+  const persp = PERSP + .55 * Math.max(0, dcur - 6);
+  const scale = Math.min(W, H) * .255 * zoom * Math.sqrt(Math.max(dcur, 1));
+  const cx = W * .5;
+  const cy = H * (W < 600 ? .47 : .49);
+  for(let k = 0; k < D; k++){
+    const a = codexMeshCoords[i * MAXD + k];
+    const b = codexMeshCoords[j * MAXD + k];
+    P[k] = (a + (b - a) * t) * axisScale[k];
+  }
+  for(let p = 0; p < planeList.length; p++){
+    const a = planeList[p][0], b = planeList[p][1];
+    const x = P[a], y = P[b];
+    P[a] = x * cs[p] - y * sn[p];
+    P[b] = x * sn[p] + y * cs[p];
+  }
+  for(let k = 0; k < D; k++) P[k] *= invNorm;
+  for(let k = D - 1; k >= 2; k--){
+    const weight = persp / (persp - P[k]);
+    for(let m = 0; m < k; m++) P[m] *= weight;
+  }
+  const x = cx + P[0] * scale;
+  const y = cy + (D >= 2 ? P[1] : 0) * scale;
+  scanProjectionX = cx + (x - cx) * projectionScale * emergence;
+  scanProjectionY = cy + (y - cy) * projectionScale * emergence;
+}
+
+function drawCodexCrossSection(D, cs, sn, planeList, axisScale, hue, fade, projectionScale, emergence){
+  lastScanSegments = 0;
+  stage.dataset.scanSegments = '0';
+  if(!scannerActive || !codexIconVisible || !codexMeshReady) return;
+  const axis = Math.max(3, target - 1);
+  if(axis >= D || axisScale[axis] < .03) return;
+  const min = codexMeshAxisMin[axis], max = codexMeshAxisMax[axis];
+  const planeSource = min + (scanPosition + 1) * .5 * (max - min);
+  const scale = axisScale[axis];
+  const plane = planeSource * scale;
+  const epsilon = 1e-6;
+  let segments = 0;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.beginPath();
+  for(let triangle = 0; triangle < codexMeshTriangleCount; triangle++){
+    const offset = triangle * 3;
+    const ia = codexMeshTriangles[offset], ib = codexMeshTriangles[offset + 1], ic = codexMeshTriangles[offset + 2];
+    let hitCount = 0, x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+    for(let edge = 0; edge < 3; edge++){
+      const i = edge === 0 ? ia : edge === 1 ? ib : ic;
+      const j = edge === 0 ? ib : edge === 1 ? ic : ia;
+      const vi = codexMeshCoords[i * MAXD + axis] * scale - plane;
+      const vj = codexMeshCoords[j * MAXD + axis] * scale - plane;
+      let t = -1;
+      if(Math.abs(vi) <= epsilon) t = 0;
+      else if((vi < 0 && vj > 0) || (vi > 0 && vj < 0)) t = vi / (vi - vj);
+      if(t < 0 || t > 1) continue;
+      projectCodexMeshIntersection(i, j, t, D, cs, sn, planeList, axisScale, projectionScale, emergence);
+      const x = scanProjectionX;
+      const y = scanProjectionY;
+      if(hitCount === 0){ x0 = x; y0 = y; hitCount = 1; }
+      else if(Math.hypot(x - x0, y - y0) > .02){ x1 = x; y1 = y; hitCount = 2; break; }
+    }
+    if(hitCount === 2){
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      segments++;
+    }
+  }
+  if(segments){
+    ctx.strokeStyle = 'hsla(' + (hue + 44) + ',92%,82%,' + (.26 * fade) + ')';
+    ctx.lineWidth = 4.2;
+    ctx.stroke();
+    ctx.strokeStyle = 'hsla(' + (hue + 26) + ',96%,90%,' + (.94 * fade) + ')';
+    ctx.lineWidth = 1.15;
+    ctx.stroke();
+  }
+  lastScanSegments = segments;
+  stage.dataset.scanSegments = String(segments);
+  ctx.restore();
+}
+
 function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
-  if(!codexEntityReady) return;
-  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' ? 1 : .86);
+  if(!codexIconVisible || !codexEntityReady) return;
+  const fade = (1 - smoothstep(clamp(finaleMix, 0, 1))) * (compileState === 'running' || clipState === 'recording' ? 1 : .86);
   if(fade <= .004) return;
-  drawCodexPathMaterial(hue, fade);
-  drawE8Projection(D, cs, sn, planeList, axisScale, hue, fade);
+  const detailFade = scannerActive ? .22 : 1;
+  drawCodexPathMaterial(hue, fade * detailFade);
+  drawE8Projection(D, cs, sn, planeList, axisScale, hue, fade * detailFade);
 
   const pointResult = transformCodexSet(
     codexPointCoords,
@@ -2029,6 +2454,18 @@ function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
     codexContourSY,
     codexContourDP
   );
+  const meshResult = D >= 3 && codexMeshReady ? transformCodexSet(
+    codexMeshCoords,
+    codexMeshVertexCount,
+    D,
+    cs,
+    sn,
+    planeList,
+    axisScale,
+    codexMeshSX,
+    codexMeshSY,
+    codexMeshDP
+  ) : null;
 
   let iconMinX = Infinity, iconMaxX = -Infinity, iconMinY = Infinity, iconMaxY = -Infinity;
   for(let i = 0; i < codexPointCount; i++){
@@ -2050,7 +2487,34 @@ function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
       codexContourSX[i] = centerX + (codexContourSX[i] - centerX) * projectionScale;
       codexContourSY[i] = centerY + (codexContourSY[i] - centerY) * projectionScale;
     }
+    if(meshResult){
+      for(let i = 0; i < codexMeshVertexCount; i++){
+        codexMeshSX[i] = centerX + (codexMeshSX[i] - centerX) * projectionScale;
+        codexMeshSY[i] = centerY + (codexMeshSY[i] - centerY) * projectionScale;
+      }
+    }
   }
+
+  const emergence = .58 + .42 * codexEventProgress(D);
+  if(emergence < .999){
+    const centerX = pointResult[2], centerY = pointResult[3];
+    for(let i = 0; i < codexPointCount; i++){
+      codexPointSX[i] = centerX + (codexPointSX[i] - centerX) * emergence;
+      codexPointSY[i] = centerY + (codexPointSY[i] - centerY) * emergence;
+    }
+    for(let i = 0; i < CODEX_CONTOUR_SAMPLES * 2; i++){
+      codexContourSX[i] = centerX + (codexContourSX[i] - centerX) * emergence;
+      codexContourSY[i] = centerY + (codexContourSY[i] - centerY) * emergence;
+    }
+    if(meshResult){
+      for(let i = 0; i < codexMeshVertexCount; i++){
+        codexMeshSX[i] = centerX + (codexMeshSX[i] - centerX) * emergence;
+        codexMeshSY[i] = centerY + (codexMeshSY[i] - centerY) * emergence;
+      }
+    }
+  }
+
+  drawCodexSurfaceMesh(D, hue, fade, meshResult);
 
   const fmin = pointResult[0], fmax = pointResult[1];
   const range = Math.max(fmax - fmin, 1e-6);
@@ -2069,7 +2533,7 @@ function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
     if(!list.length) continue;
     const depth = b / (CODEX_DEPTH_BUCKETS - 1);
     const radius = (D <= 2 ? .8 : .65 + depth * 1.05) + (compileState === 'running' ? .18 : 0);
-    ctx.fillStyle = 'hsla(' + (hue + 12 + depth * 24) + ',84%,' + (58 + depth * 28) + '%,' + ((.12 + depth * .46) * fade) + ')';
+    ctx.fillStyle = 'hsla(' + (hue + 12 + depth * 24) + ',84%,' + (58 + depth * 28) + '%,' + ((.07 + depth * .27) * fade * detailFade) + ')';
     ctx.beginPath();
     for(let i = 0; i < list.length; i++){
       const index = list[i];
@@ -2085,14 +2549,16 @@ function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
       ctx.moveTo(codexContourSX[i], codexContourSY[i]);
       ctx.lineTo(codexContourSX[CODEX_CONTOUR_SAMPLES + i], codexContourSY[CODEX_CONTOUR_SAMPLES + i]);
     }
-    ctx.strokeStyle = 'hsla(' + (hue + 8) + ',72%,62%,' + (.16 * fade) + ')';
+    ctx.strokeStyle = 'hsla(' + (hue + 8) + ',72%,62%,' + (.16 * fade * detailFade) + ')';
     ctx.lineWidth = .65;
     ctx.stroke();
   }
   const visibleLayers = clamp(Math.round(dcur), 3, 11);
   if(visibleLayers >= 4){
+    const layerEvent = visibleLayers === 11 ? codexEventProgress(11) : 1;
     for(let layer = 1; layer < visibleLayers - 1; layer++){
-      const mix = layer / (visibleLayers - 1);
+      const rawMix = layer / (visibleLayers - 1);
+      const mix = .5 + (rawMix - .5) * layerEvent;
       ctx.beginPath();
       for(let i = 0; i < CODEX_CONTOUR_SAMPLES; i++){
         const front = CODEX_CONTOUR_SAMPLES + i;
@@ -2103,24 +2569,27 @@ function drawCodexDimensionIcon(D, cs, sn, planeList, axisScale, hue){
         const y = codexContourSY[i] + (codexContourSY[front] - codexContourSY[i]) * mix + wave;
         if(codexContourBreaks[i]) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = 'hsla(' + (hue + mix * 30) + ',78%,' + (62 + mix * 16) + '%,' + ((.05 + mix * .025) * fade) + ')';
+      ctx.strokeStyle = 'hsla(' + (hue + mix * 30) + ',78%,' + (62 + mix * 16) + '%,' + ((.05 + mix * .025) * fade * detailFade) + ')';
       ctx.lineWidth = .62;
       ctx.stroke();
     }
   }
-  strokeCodexContour(0, 'hsla(' + (hue - 4) + ',72%,58%,' + (.28 * fade) + ')', D <= 2 ? 1 : .85);
-  strokeCodexContour(1, 'hsla(' + (hue + 32) + ',88%,88%,' + (.78 * fade) + ')', D <= 2 ? 1.6 : 1.25);
+  strokeCodexContour(0, 'hsla(' + (hue - 4) + ',72%,58%,' + (.28 * fade * detailFade) + ')', D <= 2 ? 1 : .85);
+  strokeCodexContour(1, 'hsla(' + (hue + 32) + ',88%,88%,' + (.78 * fade * detailFade) + ')', D <= 2 ? 1.6 : 1.25);
 
   if(Math.round(dcur) === 10){
     const size = Math.min(W, H) * .255 * zoom;
+    const eventP = codexEventProgress(10);
     for(let branch = 0; branch < 5; branch++){
       const a = branch * Math.PI * 2 / 5 + (reduced ? 0 : spaceTime * .018);
       ctx.save();
-      ctx.translate(Math.cos(a) * size * .055, Math.sin(a) * size * .04);
-      strokeCodexContour(1, 'hsla(' + (hue + branch * 8) + ',84%,76%,' + (.12 * fade) + ')', .72);
+      const radius = size * (.055 + .16 * (1 - eventP) ** 2);
+      ctx.translate(Math.cos(a) * radius, Math.sin(a) * radius * .74);
+      strokeCodexContour(1, 'hsla(' + (hue + branch * 8) + ',84%,76%,' + (.12 * fade * detailFade) + ')', .72);
       ctx.restore();
     }
   }
+  drawCodexCrossSection(D, cs, sn, planeList, axisScale, hue, fade, projectionScale, emergence);
   ctx.restore();
 }
 
@@ -2186,7 +2655,7 @@ function drawDimensionPhenomenon(D, hue){
 }
 
 function drawFinalePointCloud(g, hue){
-  if(finaleMix <= .001 || !finaleTargetsReady) return;
+  if(!codexIconVisible || finaleMix <= .001 || !finaleTargetsReady) return;
   const mix = smoothstep(clamp(finaleMix, 0, 1));
   const count = Math.min(g.V, W < 600 ? 640 : 2048);
   const size = Math.min(W, H) * .56;
@@ -2216,6 +2685,19 @@ const P = new Float64Array(MAXD);   // work vector
 const NB = 8;                       // depth buckets
 const buckets = Array.from({length: NB}, () => []);
 const mbuckets = Array.from({length: NB}, () => []);   // for morphing edges
+
+function canonicalCodexAngle(a, b){
+  if(a === 0 && b === 1) return -.1;
+  if(a === 0 && b === 2) return .42;
+  if(a === 1 && b === 2) return -.24;
+  if(b > 2 && a === 0) return .26 / Math.sqrt(b - 1);
+  if(b > 2 && a === 1) return -.17 / Math.sqrt(b - 1);
+  return 0;
+}
+function guideAngle(current, targetAngle, mix){
+  const delta = Math.atan2(Math.sin(targetAngle - current), Math.cos(targetAngle - current));
+  return current + delta * mix;
+}
 
 function transform(g, D, cs, sn, planeList, axisScale){
   const {V, verts, sx, sy, dp} = g;
@@ -2265,7 +2747,7 @@ function draw(){
   const hue = 160 + (dcur - 1) * 18;
   drawSpace(D);
   drawDimensionPhenomenon(D, hue);
-  drawCodexDimensionalField(hue);
+  drawCodexDimensionalField(D, hue);
   const g = geo(D);
   const pl = planes(D);
 
@@ -2274,7 +2756,7 @@ function draw(){
   for(let k = 0; k < D; k++) axisScale.push(clamp(dcur - k, 0, 1));
 
   // rotation angles this frame (auto-rotation + drag)
-  const cs = [], sn = [];
+  const cs = [], sn = [], angles = [];
   for(let p = 0; p < pl.length; p++){
     let ang = rotT * pl[p][2];
     const a = pl[p][0], b = pl[p][1];
@@ -2284,8 +2766,16 @@ function draw(){
     }else if(D === 2 && a === 0 && b === 1){
       ang += yaw;
     }
+    angles.push(ang);
     cs.push(Math.cos(ang));
     sn.push(Math.sin(ang));
+  }
+  const iconCs = [], iconSn = [];
+  const guideMix = reduced ? 1 : smoothstep(clamp(codexReveal, 0, 1));
+  for(let p = 0; p < pl.length; p++){
+    const guided = guideAngle(angles[p], canonicalCodexAngle(pl[p][0], pl[p][1]), guideMix);
+    iconCs.push(Math.cos(guided));
+    iconSn.push(Math.sin(guided));
   }
 
   const [fmin, fmax] = transform(g, D, cs, sn, pl, axisScale);
@@ -2379,7 +2869,7 @@ function draw(){
   }
 
   ctx.globalCompositeOperation = 'source-over';
-  drawCodexDimensionIcon(D, cs, sn, pl, axisScale, hue);
+  drawCodexDimensionIcon(D, iconCs, iconSn, pl, axisScale, hue);
   if(finaleMix < .76) drawAxes(D, cs, sn, pl, axisScale);
   drawFinalePointCloud(g, hue);
 }
@@ -2414,30 +2904,291 @@ function drawAxes(D, cs, sn, pl, axisScale){
   }
 }
 
+/* ---------- five-second, locally recorded dimensional loop ---------- */
+function clipMimeCandidates(){
+  return [
+    'video/mp4;codecs=avc1.42E01E',
+    'video/mp4',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+  ];
+}
+function createClipRecorder(stream){
+  const canCheck = typeof MediaRecorder.isTypeSupported === 'function';
+  for(const mimeType of clipMimeCandidates()){
+    if(canCheck && !MediaRecorder.isTypeSupported(mimeType)) continue;
+    try{ return new MediaRecorder(stream, {mimeType, videoBitsPerSecond:4500000}); }
+    catch(err){
+      try{ return new MediaRecorder(stream, {mimeType}); }
+      catch(inner){ /* try the next codec */ }
+    }
+  }
+  try{ return new MediaRecorder(stream); }
+  catch(err){ return null; }
+}
+function clipTypeExtension(type){ return String(type).toLowerCase().includes('mp4') ? 'MP4' : 'WEBM'; }
+function clearClipBlob(revokeDelay = 0){
+  if(clipBlobUrl){
+    const url = clipBlobUrl;
+    if(revokeDelay > 0) setTimeout(() => URL.revokeObjectURL(url), revokeDelay);
+    else URL.revokeObjectURL(url);
+  }
+  clipBlobUrl = '';
+  clipBlob = null;
+  clipExtension = '';
+}
+function downloadClipBlob(){
+  if(!clipBlob) return;
+  if(!clipBlobUrl) clipBlobUrl = URL.createObjectURL(clipBlob);
+  const a = document.createElement('a');
+  a.href = clipBlobUrl;
+  a.download = 'codex-11d-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function captureClipSnapshot(){
+  return {
+    target,dcur,rotT,autoRotate,yaw,pitch,zoom,zoomT,boost,boostTouched,spinVel,
+    finaleMix,finaleTarget,spaceTime,codexReveal,codexRevealHold,codexEventDim,codexEventAge,
+    scannerActive,scanPosition,
+  };
+}
+function restoreClipSnapshot(){
+  if(!clipSnapshot) return;
+  ({
+    target,dcur,rotT,autoRotate,yaw,pitch,zoom,zoomT,boost,boostTouched,spinVel,
+    finaleMix,finaleTarget,spaceTime,codexReveal,codexRevealHold,codexEventDim,codexEventAge,
+    scannerActive,scanPosition,
+  } = clipSnapshot);
+  clipSnapshot = null;
+  stage.classList.toggle('scanner-active', scannerActive);
+  $('sectionScanner').hidden = !scannerActive;
+  $('scanSlider').value = String(Math.round(scanPosition * 100));
+  syncRotateBtn();
+  setBoost(boost);
+  renderLabControls();
+}
+function composeClipFrame(){
+  if(!clipCtx || W <= 0 || H <= 0) return;
+  const sx = clipCanvas.width / W;
+  const sy = clipCanvas.height / H;
+  const hue = 160 + (dcur - 1) * 18;
+  clipCtx.setTransform(1, 0, 0, 1, 0, 0);
+  const bg = clipCtx.createRadialGradient(clipCanvas.width * .52, clipCanvas.height * .48, 0, clipCanvas.width * .52, clipCanvas.height * .48, Math.max(clipCanvas.width, clipCanvas.height) * .72);
+  bg.addColorStop(0, 'hsl(' + hue + ' 46% 13%)');
+  bg.addColorStop(.48, 'hsl(220 52% 7%)');
+  bg.addColorStop(1, 'hsl(224 62% 3%)');
+  clipCtx.fillStyle = bg;
+  clipCtx.fillRect(0, 0, clipCanvas.width, clipCanvas.height);
+  clipCtx.save();
+  clipCtx.scale(sx, sy);
+  clipCtx.strokeStyle = 'hsla(215,42%,64%,.045)';
+  clipCtx.lineWidth = 1 / Math.max(sx, sy);
+  clipCtx.beginPath();
+  for(let x = 0; x <= W; x += 48){ clipCtx.moveTo(x, 0); clipCtx.lineTo(x, H); }
+  for(let y = 0; y <= H; y += 48){ clipCtx.moveTo(0, y); clipCtx.lineTo(W, y); }
+  clipCtx.stroke();
+  clipCtx.save();
+  clipCtx.globalAlpha = .055;
+  clipCtx.fillStyle = 'hsl(215 35% 88%)';
+  clipCtx.font = '600 ' + Math.round(Math.min(W, H) * .44) + 'px Georgia, serif';
+  clipCtx.textAlign = 'center';
+  clipCtx.textBaseline = 'middle';
+  clipCtx.fillText(String(Math.max(1, Math.min(11, Math.round(dcur)))), W * .62, H * .32);
+  if(codexPath2D){
+    const logoSize = Math.min(W, H) * .2;
+    clipCtx.translate(W * .23, H * .73);
+    clipCtx.scale(logoSize / 24, logoSize / 24);
+    clipCtx.translate(-12, -12);
+    clipCtx.fill(codexPath2D);
+  }
+  clipCtx.restore();
+  clipCtx.save();
+  clipCtx.globalAlpha = .065;
+  clipCtx.fillStyle = 'hsl(215 35% 88%)';
+  clipCtx.font = '600 ' + Math.round(Math.min(W * .12, H * .14)) + 'px Consolas, monospace';
+  clipCtx.textAlign = 'left';
+  clipCtx.fillText('CODEX', W * .32, H * .79);
+  clipCtx.restore();
+  clipCtx.drawImage(canvas, 0, 0, W, H);
+  clipCtx.fillStyle = 'hsla(210,34%,88%,.72)';
+  clipCtx.font = '600 10px Consolas, monospace';
+  clipCtx.textAlign = 'left';
+  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 5S REALITY LOOP', 18, H - 17);
+  clipCtx.restore();
+}
+function updateClipFrame(now){
+  const phase = clamp((now - clipStartTime) / 5000, 0, 1);
+  const loop = (1 - Math.cos(phase * Math.PI * 2)) * .5;
+  dcur = 1 + 10 * loop;
+  target = clamp(Math.round(dcur), 1, MAXD);
+  const nextDim = target;
+  if(nextDim !== clipLastDim){
+    clipLastDim = nextDim;
+    codexEventDim = nextDim;
+    codexEventAge = 0;
+  }
+  rotT = ROT0 + Math.sin(phase * Math.PI * 2) * 8;
+  yaw = YAW0 + Math.sin(phase * Math.PI * 2) * .18;
+  pitch = PITCH0 + Math.sin(phase * Math.PI * 4) * .1;
+  spaceTime = clipSnapshot.spaceTime + Math.sin(phase * Math.PI * 2) * 2.2;
+  codexReveal = .74;
+  finaleMix = smoothstep(clamp((loop - .82) / .18, 0, 1));
+  finaleTarget = finaleMix;
+  $('btnClip').textContent = UI[lang].clipRecording(Math.round(phase * 100));
+}
+function stopClipRecording(reason = ''){
+  if(clipState !== 'recording') return;
+  clipAbortReason = reason;
+  clipState = 'encoding';
+  restoreClipSnapshot();
+  renderLabControls();
+  try{ clipRecorder.stop(); }
+  catch(err){ finalizeClipRecording(); }
+}
+function finalizeClipRecording(){
+  if(clipState !== 'encoding') return;
+  app.classList.remove('clip-lock');
+  if(clipStream){
+    clipStream.getTracks().forEach(track => track.stop());
+    clipStream = null;
+  }
+  if(clipAbortReason){
+    clipChunks = [];
+    clipState = 'idle';
+    showToast(clipAbortReason === 'hidden' ? UI[lang].toastClipAborted : UI[lang].toastClipUnavailable, 4200);
+    renderLabControls();
+    return;
+  }
+  const type = clipRecorder && clipRecorder.mimeType ? clipRecorder.mimeType : 'video/webm';
+  const blob = new Blob(clipChunks, {type});
+  clipChunks = [];
+  if(!blob.size){
+    clipState = 'idle';
+    showToast(UI[lang].toastClipUnavailable, 4200);
+    renderLabControls();
+    return;
+  }
+  clearClipBlob();
+  clipBlob = blob;
+  clipExtension = clipTypeExtension(type);
+  stage.dataset.clipBytes = String(blob.size);
+  stage.dataset.clipMime = type;
+  clipState = 'ready';
+  downloadClipBlob();
+  showToast(UI[lang].toastClipDone(clipExtension), 4600);
+  renderLabControls();
+}
+function startClipRecording(){
+  if(clipState === 'ready'){
+    downloadClipBlob();
+    clearClipBlob(1800);
+    clipState = 'idle';
+    renderLabControls();
+    return;
+  }
+  if(clipState !== 'idle') return;
+  if(!codexIconVisible){ showToast(UI[lang].toastClipNeedsCodex, 3600); return; }
+  if(compileState !== 'hidden' || breachActive){ showToast(UI[lang].toastClipIntro, 3600); return; }
+  if(typeof HTMLCanvasElement.prototype.captureStream !== 'function' || typeof window.MediaRecorder !== 'function'){
+    showToast(UI[lang].toastClipUnavailable, 4200);
+    return;
+  }
+  if(W < 2 || H < 2){ showToast(UI[lang].toastClipUnavailable, 4200); return; }
+  clearClipBlob();
+  stage.dataset.clipBytes = '0';
+  stage.dataset.clipMime = '';
+  const aspect = W / H;
+  let outW, outH;
+  if(aspect >= 1280 / 720){ outW = Math.min(1280, Math.round(W * DPR)); outH = Math.round(outW / aspect); }
+  else{ outH = Math.min(720, Math.round(H * DPR)); outW = Math.round(outH * aspect); }
+  clipCanvas.width = Math.max(2, outW - outW % 2);
+  clipCanvas.height = Math.max(2, outH - outH % 2);
+  try{
+    clipStream = clipCanvas.captureStream(30);
+    clipRecorder = createClipRecorder(clipStream);
+  }catch(err){
+    if(clipStream) clipStream.getTracks().forEach(track => track.stop());
+    clipStream = null;
+    clipRecorder = null;
+    showToast(UI[lang].toastClipUnavailable, 4200);
+    return;
+  }
+  if(!clipRecorder){
+    clipStream.getTracks().forEach(track => track.stop());
+    clipStream = null;
+    showToast(UI[lang].toastClipUnavailable, 4200);
+    return;
+  }
+  clipSnapshot = captureClipSnapshot();
+  clipChunks = [];
+  clipAbortReason = '';
+  clipRecorder.addEventListener('dataavailable', event => { if(event.data && event.data.size) clipChunks.push(event.data); });
+  clipRecorder.addEventListener('stop', finalizeClipRecording, {once:true});
+  clipRecorder.addEventListener('error', () => stopClipRecording('recorder-error'), {once:true});
+  clipState = 'recording';
+  clipStartTime = performance.now();
+  clipLastDim = 1;
+  target = 1; dcur = 1; rotT = ROT0; yaw = YAW0; pitch = PITCH0;
+  zoom = 1; zoomT = 1; boost = true; spinVel = 0;
+  scannerActive = false;
+  stage.classList.remove('scanner-active');
+  $('sectionScanner').hidden = true;
+  finaleMix = 0; finaleTarget = 0;
+  codexEventDim = 1; codexEventAge = 0; codexReveal = .74; codexRevealHold = 0;
+  app.classList.add('clip-lock');
+  renderLabControls();
+  try{ clipRecorder.start(250); }
+  catch(err){
+    clipState = 'idle';
+    app.classList.remove('clip-lock');
+    restoreClipSnapshot();
+    if(clipStream) clipStream.getTracks().forEach(track => track.stop());
+    clipStream = null;
+    showToast(UI[lang].toastClipUnavailable, 4200);
+  }
+}
+
 /* ---------- main loop ---------- */
 let lastT = performance.now();
 function frame(now){
   const dt = Math.min((now - lastT) / 1000, 0.1);
   lastT = now;
-  updateCompile(dt);
-  updateBreach(dt);
-  if(autoRotate) rotT += dt;
-  if(autoRotate && !reduced) spaceTime += dt;
-  // hyperspin burst decays exponentially
-  if(spinVel > 0.02){
-    rotT += spinVel * dt;
-    spinVel *= Math.exp(-dt * 2.4);
+  const recordingFrame = clipState === 'recording';
+  if(recordingFrame){
+    updateClipFrame(now);
+  }else{
+    updateCompile(dt);
+    updateBreach(dt);
+    if(autoRotate) rotT += dt;
+    if(autoRotate && !reduced) spaceTime += dt;
+    if(spinVel > 0.02){
+      rotT += spinVel * dt;
+      spinVel *= Math.exp(-dt * 2.4);
+    }
+    const diff = target - dcur;
+    if(Math.abs(diff) > 0.0005){
+      dcur += diff * Math.min(1, dt * 4.2);
+      if(Math.abs(target - dcur) <= 0.0005) dcur = target;
+    }
+    const zdiff = zoomT - zoom;
+    if(Math.abs(zdiff) > 0.0005) zoom += zdiff * Math.min(1, dt * 9);
   }
-  // dimension morphing (eased)
-  const diff = target - dcur;
-  if(Math.abs(diff) > 0.0005){
-    dcur += diff * Math.min(1, dt * 4.2);
-    if(Math.abs(target - dcur) <= 0.0005) dcur = target;
+  const renderedEventDim = Math.ceil(dcur - 1e-6);
+  if(!recordingFrame && !reduced && renderedEventDim === codexEventDim){
+    if(codexRevealHold > 0) codexRevealHold = Math.max(0, codexRevealHold - dt);
+    else codexReveal *= Math.exp(-dt * 2.8);
   }
-  // zoom easing
-  const zdiff = zoomT - zoom;
-  if(Math.abs(zdiff) > 0.0005) zoom += zdiff * Math.min(1, dt * 9);
+  if(recordingFrame || renderedEventDim === codexEventDim){
+    codexEventAge = Math.min(CODEX_EVENT_DURATION, codexEventAge + dt);
+  }
   draw();
+  if(recordingFrame){
+    composeClipFrame();
+    if(now - clipStartTime >= 5000) stopClipRecording();
+  }
   requestAnimationFrame(frame);
 }
 
@@ -2609,6 +3360,7 @@ function compileSetDimension(n, instant = false){
 }
 
 function startCompile(){
+  if(clipIsBusy()) return;
   if($('passportDialog').open) $('passportDialog').close();
   breachActive = false;
   app.classList.remove('reality-breach');
@@ -2720,6 +3472,7 @@ btnSound.addEventListener('click', async () => {
 });
 
 function startBreach(){
+  if(clipIsBusy()) return;
   if(compileState !== 'hidden') enterObservatory();
   compileSetDimension(11, true);
   finaleMix = 0;
@@ -2759,6 +3512,9 @@ const slider = $('slider');
 const ticksBox = $('ticks');
 const ghostSlot = $('ghostSlot');
 const btnBoost = $('btnBoost');
+const btnCodex = $('btnCodex');
+const btnScanner = $('btnScanner');
+const btnClip = $('btnClip');
 
 function fmt(x){ return x.toLocaleString('en-US'); }
 
@@ -2814,6 +3570,7 @@ let fadeTimer = 0;
 const visited = new Set([3]);
 let allVisitedToasted = false;
 function setDimension(n, fromSlider){
+  if(clipIsBusy()) return;
   n = clamp(n | 0, 1, MAXD);
   if(!fromSlider) slider.value = n;
   if(n === target){
@@ -2821,6 +3578,8 @@ function setDimension(n, fromSlider){
     return;
   }
   target = n;
+  triggerCodexEvent(n);
+  if(n < 4 && scannerActive) scannerActive = false;
   stage.dataset.dimension = String(n);
   pulseDimension();
   renderObservatoryLog(n);
@@ -2854,6 +3613,7 @@ function setDimension(n, fromSlider){
 
   // auto line-boost for dense high dimensions (until the user takes over)
   if(!boostTouched) setBoost(n >= 9);
+  renderLabControls();
 }
 
 /* ticks (1–11 buttons, plus a dimension under construction) */
@@ -2900,9 +3660,11 @@ function syncRotateBtn(){
   btnRotate.setAttribute('aria-pressed', String(autoRotate));
   stage.classList.toggle('motion-paused', !autoRotate || reduced);
 }
-btnRotate.addEventListener('click', () => { autoRotate = !autoRotate; syncRotateBtn(); });
+btnRotate.addEventListener('click', () => { if(clipIsBusy()) return; autoRotate = !autoRotate; syncRotateBtn(); });
 $('btnReset').addEventListener('click', () => {
+  if(clipIsBusy()) return;
   yaw = YAW0; pitch = PITCH0; rotT = ROT0; setZoomT(1);
+  triggerCodexEvent(target);
   showToast(UI[lang].toastReset, 2800);
 });
 
@@ -2925,7 +3687,67 @@ function setBoost(v){
   btnBoost.classList.toggle('on', v);
   btnBoost.setAttribute('aria-pressed', String(v));
 }
-btnBoost.addEventListener('click', () => { boostTouched = true; setBoost(!boost); });
+btnBoost.addEventListener('click', () => { if(clipIsBusy()) return; boostTouched = true; setBoost(!boost); });
+
+/* ---------- CODEX specimen lab controls ---------- */
+function renderScannerControl(){
+  const axis = Math.max(3, target - 1);
+  const min = Number.isFinite(codexMeshAxisMin[axis]) ? codexMeshAxisMin[axis] : -1;
+  const max = Number.isFinite(codexMeshAxisMax[axis]) ? codexMeshAxisMax[axis] : 1;
+  const value = min + (scanPosition + 1) * .5 * (max - min);
+  $('scannerLabel').textContent = UI[lang].scannerLabel(axis + 1);
+  $('scanValue').textContent = (scanPosition >= 0 ? '+' : '') + Math.round(scanPosition * 100) + '% · ' + value.toFixed(3);
+}
+function renderLabControls(){
+  const u = UI[lang];
+  btnCodex.textContent = codexIconVisible ? u.codexOn : u.codexOff;
+  btnCodex.setAttribute('aria-label', codexIconVisible ? u.codexOn : u.codexOff);
+  btnCodex.setAttribute('aria-pressed', String(codexIconVisible));
+  const scannerAvailable = codexIconVisible && target >= 4 && clipState !== 'recording';
+  btnScanner.textContent = scannerActive ? u.scannerOn : u.scannerOff;
+  btnScanner.setAttribute('aria-label', u.scannerAria);
+  btnScanner.setAttribute('aria-pressed', String(scannerActive));
+  btnScanner.setAttribute('aria-disabled', String(!scannerAvailable));
+  stage.classList.toggle('codex-off', !codexIconVisible);
+  stage.classList.toggle('scanner-active', scannerActive);
+  stage.dataset.codexVisible = String(codexIconVisible);
+  stage.dataset.scannerActive = String(scannerActive);
+  stage.dataset.clipState = clipState;
+  $('sectionScanner').hidden = !scannerActive;
+  $('scanSlider').setAttribute('aria-label', u.scanAria);
+  renderScannerControl();
+  btnClip.classList.toggle('is-recording', clipState === 'recording');
+  if(clipState === 'recording') btnClip.textContent = u.clipRecording(0);
+  else if(clipState === 'encoding') btnClip.textContent = u.clipEncoding;
+  else if(clipState === 'ready') btnClip.textContent = u.clipDownload(clipExtension || 'VIDEO');
+  else btnClip.textContent = u.clip;
+  btnClip.setAttribute('aria-label', btnClip.textContent);
+}
+function setCodexVisible(value){
+  if(clipIsBusy()) return;
+  codexIconVisible = Boolean(value);
+  if(!codexIconVisible) scannerActive = false;
+  renderLabControls();
+}
+function setScannerActive(value){
+  scannerActive = Boolean(value) && codexIconVisible && target >= 4;
+  renderLabControls();
+}
+btnCodex.addEventListener('click', () => setCodexVisible(!codexIconVisible));
+btnScanner.addEventListener('click', () => {
+  if(clipIsBusy()) return;
+  if(!codexIconVisible){ showToast(UI[lang].toastScannerIcon, 3400); return; }
+  if(target < 4){ showToast(UI[lang].toastScannerLocked, 3400); return; }
+  setScannerActive(!scannerActive);
+});
+$('scanSlider').addEventListener('input', event => {
+  scanPosition = clamp(+event.target.value / 100, -1, 1);
+  renderScannerControl();
+});
+btnClip.addEventListener('click', startClipRecording);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden && clipState === 'recording') stopClipRecording('hidden');
+});
 
 /* ---------- dimensional expedition card ---------- */
 const passportDialog = $('passportDialog');
@@ -3064,6 +3886,7 @@ function preparePassportBlob(){
 }
 
 function openPassport(){
+  if(clipIsBusy()) return;
   if(target < 11 && compileState !== 'success'){
     showToast(EXPERIENCE[lang].passportLocked, 3600);
     return;
@@ -3172,6 +3995,8 @@ canvas.addEventListener('pointermove', e => {
     if(Math.ceil(dcur - 1e-6) > 1){
       yaw   += (e.clientX - px) * 0.006;
       pitch += (e.clientY - py) * 0.006;
+      codexReveal = 0;
+      codexRevealHold = 0;
     }
     px = e.clientX; py = e.clientY;
   }
@@ -3196,6 +4021,8 @@ function endPointer(e){
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('dblclick', () => {
+  codexReveal = 0;
+  codexRevealHold = 0;
   if(reduced){ rotT += 0.8; }
   else{ spinVel = 16; }
   showToast(UI[lang].toastHyperspin, 2800);
@@ -3244,6 +4071,7 @@ function applyLang(l){
   renderDimTexts(target);
   renderObservatoryLog(target);
   renderCodexReadout(target);
+  renderLabControls();
   renderCompileText();
   updatePassportButton();
   if(passportDialog.open){ renderPassportDom(); preparePassportBlob(); }
@@ -3280,6 +4108,14 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
   setZoomT(1);
   prepareFinaleTargets();
   prepareCodexDimensionIcon();
+  stage.dataset.meshReady = String(codexMeshReady);
+  stage.dataset.meshVertices = String(codexMeshVertexCount);
+  stage.dataset.meshTriangles = String(codexMeshTriangleCount);
+  stage.dataset.e8Roots = String(e8Count);
+  stage.dataset.scanSegments = '0';
+  stage.dataset.eventDimension = '3';
+  codexIconVisible = true;
+  renderLabControls();
   stage.dataset.dimension = '3';
   updatePassportButton();
   if(shared){
@@ -3295,6 +4131,23 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
   }
   renderCompileText();
 })();
+Object.defineProperty(window, 'dimensionVisualizerDiagnostics', {
+  configurable:false,
+  value:() => ({
+    meshReady:codexMeshReady,
+    meshVertices:codexMeshVertexCount,
+    meshTriangles:codexMeshTriangleCount,
+    e8Roots:e8Count,
+    codexIconVisible,
+    scannerActive,
+    scanSegments:lastScanSegments,
+    clipState,
+    dcur,
+    target,
+    canvasWidth:W,
+    canvasHeight:H,
+  }),
+});
 requestAnimationFrame(frame);
 </script>
 </body>
