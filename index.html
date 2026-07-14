@@ -1107,7 +1107,7 @@ input[type=range]::-moz-range-thumb{
         <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
         <button id="btnCodex" class="lab-tool" aria-label="Codex icon on" aria-pressed="true">CODEX · ON</button>
         <button id="btnScanner" class="lab-tool" aria-label="Cross-section scanner" aria-pressed="false" aria-disabled="true">SECTION · OFF</button>
-        <button id="btnClip" class="lab-tool clip" aria-label="Save fifteen second loop">SAVE 15S LOOP</button>
+        <button id="btnClip" class="lab-tool clip" aria-label="Save thirty-second loop">SAVE 30S LOOP</button>
         <button id="btnPassport" class="passport" aria-label="Open dimensional passport">PASSPORT 1/11</button>
       </div>
       <div class="section-scanner" id="sectionScanner" role="group" aria-labelledby="scannerLabel" hidden>
@@ -1239,7 +1239,10 @@ const clipCtx = clipCanvas.getContext('2d');
 const logoPath = document.querySelector('.ai-watermark path');
 
 const MAXD = 11;
-const CLIP_DURATION_MS = 15000;
+const CLIP_HOLD_MS = 1000;
+const CLIP_TRANSITION_MS = 250;
+const CLIP_SUMMIT_PAUSE_MS = 4000;
+const CLIP_DURATION_MS = CLIP_HOLD_MS + (MAXD - 1) * 2 * (CLIP_TRANSITION_MS + CLIP_HOLD_MS) + CLIP_SUMMIT_PAUSE_MS;
 const PERSP = 2.8;               // perspective eye distance (post-normalization coords)
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -1256,7 +1259,7 @@ const UI = {
     scannerOn:'SECTION · ON', scannerOff:'SECTION · OFF',
     scannerLabel:axis => 'SECTION · X' + axis,
     scannerAria:'Cross-section scanner', scanAria:'Cross-section position',
-    clip:'SAVE 15S LOOP', clipRecording:pct => 'REC ' + pct + '%',
+    clip:'SAVE 30S LOOP', clipRecording:pct => 'REC ' + pct + '%',
     clipEncoding:'ENCODING…', clipDownload:ext => 'DOWNLOAD ' + ext,
     langEN:'English', langJA:'Japanese',
     zoomIn:'Zoom in', zoomOut:'Zoom out',
@@ -1276,9 +1279,9 @@ const UI = {
     toastHyperspin:'Hyperspin engaged. Loose dimensions secured.',
     toastScannerLocked:'Cross-sections unlock in 4D. Three dimensions are still suspiciously solid.',
     toastScannerIcon:'Turn the Codex specimen on before slicing it. Ethics paperwork is pending.',
-    toastClipUnavailable:'This browser cannot bottle fifteen seconds of spacetime.',
+    toastClipUnavailable:'This browser cannot bottle thirty seconds of spacetime.',
     toastClipIntro:'Enter the observatory before recording a loop.',
-    toastClipDone:ext => ext + ' loop ready. Fifteen seconds of reality have been contained.',
+    toastClipDone:ext => ext + ' loop ready. Thirty seconds of reality have been contained.',
     toastClipAborted:'Recording stopped because this dimension left the visible tab.',
     toastClipNeedsCodex:'Turn CODEX on before recording the specimen loop.',
   },
@@ -1292,7 +1295,7 @@ const UI = {
     scannerOn:'断面 · ON', scannerOff:'断面 · OFF',
     scannerLabel:axis => '断面走査 · X' + axis,
     scannerAria:'断面スキャナー', scanAria:'断面位置',
-    clip:'15秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
+    clip:'30秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
     clipEncoding:'変換中…', clipDownload:ext => ext + 'を保存',
     langEN:'英語', langJA:'日本語',
     zoomIn:'ズームイン', zoomOut:'ズームアウト',
@@ -1312,9 +1315,9 @@ const UI = {
     toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
     toastScannerLocked:'断面走査は4次元から解禁です。3次元はまだ妙に頑丈です。',
     toastScannerIcon:'切る前にCodex観測対象をONにしてください。倫理書類は審査中です。',
-    toastClipUnavailable:'このブラウザでは15秒分の時空を瓶詰めできません。',
+    toastClipUnavailable:'このブラウザでは30秒分の時空を瓶詰めできません。',
     toastClipIntro:'ループを録画する前に観測室へ入ってください。',
-    toastClipDone:ext => ext + 'ループの準備完了。15秒分の現実を封じ込めました。',
+    toastClipDone:ext => ext + 'ループの準備完了。30秒分の現実を封じ込めました。',
     toastClipAborted:'別タブへ移動したため、時空の録画を中止しました。',
     toastClipNeedsCodex:'観測対象のループを録る前にCODEXをONにしてください。',
   },
@@ -2905,7 +2908,7 @@ function drawAxes(D, cs, sn, pl, axisScale){
   }
 }
 
-/* ---------- fifteen-second, locally recorded dimensional loop ---------- */
+/* ---------- thirty-second, locally recorded dimensional loop ---------- */
 function clipMimeCandidates(){
   return [
     'video/mp4;codecs=avc1.42E01E',
@@ -2944,7 +2947,7 @@ function downloadClipBlob(){
   if(!clipBlobUrl) clipBlobUrl = URL.createObjectURL(clipBlob);
   const a = document.createElement('a');
   a.href = clipBlobUrl;
-  a.download = 'codex-11d-15s-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
+  a.download = 'codex-11d-30s-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -3017,13 +3020,40 @@ function composeClipFrame(){
   clipCtx.fillStyle = 'hsla(210,34%,88%,.72)';
   clipCtx.font = '600 10px Consolas, monospace';
   clipCtx.textAlign = 'left';
-  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 15S REALITY LOOP', 18, H - 17);
+  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 30S REALITY LOOP', 18, H - 17);
   clipCtx.restore();
 }
+function clipDimensionAt(elapsedMs){
+  let elapsed = clamp(elapsedMs, 0, CLIP_DURATION_MS);
+  if(elapsed < CLIP_HOLD_MS) return 1;
+  elapsed -= CLIP_HOLD_MS;
+  for(let dimension = 2; dimension <= MAXD; dimension++){
+    if(elapsed < CLIP_TRANSITION_MS){
+      const transition = smoothstep(clamp(elapsed / CLIP_TRANSITION_MS, 0, 1));
+      return dimension - 1 + transition;
+    }
+    elapsed -= CLIP_TRANSITION_MS;
+    if(elapsed < CLIP_HOLD_MS) return dimension;
+    elapsed -= CLIP_HOLD_MS;
+  }
+  if(elapsed < CLIP_SUMMIT_PAUSE_MS) return MAXD;
+  elapsed -= CLIP_SUMMIT_PAUSE_MS;
+  for(let dimension = MAXD - 1; dimension >= 1; dimension--){
+    if(elapsed < CLIP_TRANSITION_MS){
+      const transition = smoothstep(clamp(elapsed / CLIP_TRANSITION_MS, 0, 1));
+      return dimension + 1 - transition;
+    }
+    elapsed -= CLIP_TRANSITION_MS;
+    if(elapsed < CLIP_HOLD_MS) return dimension;
+    elapsed -= CLIP_HOLD_MS;
+  }
+  return 1;
+}
 function updateClipFrame(now){
-  const phase = clamp((now - clipStartTime) / CLIP_DURATION_MS, 0, 1);
-  const loop = (1 - Math.cos(phase * Math.PI * 2)) * .5;
-  dcur = 1 + 10 * loop;
+  const elapsed = clamp(now - clipStartTime, 0, CLIP_DURATION_MS);
+  const phase = elapsed / CLIP_DURATION_MS;
+  dcur = clipDimensionAt(elapsed);
+  const dimensionProgress = (dcur - 1) / (MAXD - 1);
   target = clamp(Math.round(dcur), 1, MAXD);
   const nextDim = target;
   if(nextDim !== clipLastDim){
@@ -3036,8 +3066,11 @@ function updateClipFrame(now){
   pitch = PITCH0 + Math.sin(phase * Math.PI * 4) * .1;
   spaceTime = clipSnapshot.spaceTime + Math.sin(phase * Math.PI * 2) * 2.2;
   codexReveal = .74;
-  finaleMix = smoothstep(clamp((loop - .82) / .18, 0, 1));
+  finaleMix = smoothstep(clamp((dimensionProgress - .82) / .18, 0, 1));
   finaleTarget = finaleMix;
+  if(elapsed >= CLIP_DURATION_MS) codexEventAge = CODEX_EVENT_DURATION;
+  stage.dataset.clipElapsedMs = String(Math.round(elapsed));
+  stage.dataset.clipDimension = dcur.toFixed(3);
   $('btnClip').textContent = UI[lang].clipRecording(Math.round(phase * 100));
 }
 function stopClipRecording(reason = ''){
@@ -3138,7 +3171,7 @@ function startClipRecording(){
   stage.classList.remove('scanner-active');
   $('sectionScanner').hidden = true;
   finaleMix = 0; finaleTarget = 0;
-  codexEventDim = 1; codexEventAge = 0; codexReveal = .74; codexRevealHold = 0;
+  codexEventDim = 1; codexEventAge = CODEX_EVENT_DURATION; codexReveal = .74; codexRevealHold = 0;
   app.classList.add('clip-lock');
   renderLabControls();
   try{ clipRecorder.start(250); }

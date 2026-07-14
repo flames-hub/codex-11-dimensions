@@ -15,7 +15,7 @@ https://flames-hub.github.io/codex-11-dimensions/
 - Slice 4D–11D forms with a live cross-section scanner along the newest extra axis.
 - Trigger distinctive transformation events in 4D, 6D, 8D, 9D, 10D, and 11D.
 - Turn the Codex specimen on or off; it starts ON on every visit.
-- Record a seamless fifteen-second 1D→11D→1D reality loop locally as MP4 or WebM, with no upload.
+- Record a seamless thirty-second 1D→11D→1D reality loop locally as MP4 or WebM, holding each dimension for about one second and pausing at 11D before the return trip, with no upload.
 - Rotate, zoom, pause, reset, and boost dense projection lines.
 - Switch between English and Japanese.
 - Read dimension-specific explanations, resident quotes, and observatory logs.
