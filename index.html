@@ -666,6 +666,7 @@ canvas#cv.dragging{cursor:grabbing}
 #app.clip-lock footer input,
 #app.clip-lock .rail,
 #app.clip-lock canvas,
+#app.clip-lock .stage-tools select,
 #app.clip-lock .stage-tools button:not(#btnClip){pointer-events:none}
 #app.clip-lock #btnClip{pointer-events:auto}
 .stage-tools button.boost{
@@ -696,6 +697,24 @@ canvas#cv.dragging{cursor:grabbing}
   box-shadow:0 0 13px hsl(var(--hue) 72% 56% / .16);
 }
 .stage-tools button.lab-tool[aria-disabled="true"]{opacity:.4}
+.clip-controls{display:flex;align-items:center;gap:5px}
+.stage-tools select.clip-duration{
+  width:132px;
+  height:27px;
+  padding:0 7px;
+  background:hsl(222 40% 8% / .82);
+  color:var(--mut);
+  border:1px solid var(--line);
+  border-radius:3px;
+  font-family:var(--mono);
+  font-size:calc(var(--fs)*8px);
+  letter-spacing:.08em;
+  cursor:pointer;
+  color-scheme:dark;
+}
+.stage-tools select.clip-duration:hover{border-color:var(--gold-dim);color:var(--gold)}
+.stage-tools select.clip-duration:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.stage-tools select.clip-duration:disabled{opacity:.38;cursor:wait}
 .stage-tools button.clip.is-recording{
   color:var(--gold);
   border-color:var(--gold-dim);
@@ -1107,7 +1126,13 @@ input[type=range]::-moz-range-thumb{
         <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
         <button id="btnCodex" class="lab-tool" aria-label="Codex icon on" aria-pressed="true">CODEX · ON</button>
         <button id="btnScanner" class="lab-tool" aria-label="Cross-section scanner" aria-pressed="false" aria-disabled="true">SECTION · OFF</button>
-        <button id="btnClip" class="lab-tool clip" aria-label="Save thirty-second loop">SAVE 30S LOOP</button>
+        <div class="clip-controls">
+          <select id="clipDuration" class="clip-duration" aria-label="Loop duration">
+            <option id="clipDuration15" value="smooth15">15S · SMOOTH</option>
+            <option id="clipDuration30" value="held30" selected>30S · HOLD</option>
+          </select>
+          <button id="btnClip" class="lab-tool clip" aria-label="Save thirty-second loop">SAVE 30S LOOP</button>
+        </div>
         <button id="btnPassport" class="passport" aria-label="Open dimensional passport">PASSPORT 1/11</button>
       </div>
       <div class="section-scanner" id="sectionScanner" role="group" aria-labelledby="scannerLabel" hidden>
@@ -1239,10 +1264,15 @@ const clipCtx = clipCanvas.getContext('2d');
 const logoPath = document.querySelector('.ai-watermark path');
 
 const MAXD = 11;
+const CLIP_SMOOTH_DURATION_MS = 15000;
 const CLIP_HOLD_MS = 1000;
 const CLIP_TRANSITION_MS = 250;
 const CLIP_SUMMIT_PAUSE_MS = 4000;
-const CLIP_DURATION_MS = CLIP_HOLD_MS + (MAXD - 1) * 2 * (CLIP_TRANSITION_MS + CLIP_HOLD_MS) + CLIP_SUMMIT_PAUSE_MS;
+const CLIP_HELD_DURATION_MS = CLIP_HOLD_MS + (MAXD - 1) * 2 * (CLIP_TRANSITION_MS + CLIP_HOLD_MS) + CLIP_SUMMIT_PAUSE_MS;
+const CLIP_MODES = Object.freeze({
+  smooth15:Object.freeze({id:'smooth15', durationMs:CLIP_SMOOTH_DURATION_MS}),
+  held30:Object.freeze({id:'held30', durationMs:CLIP_HELD_DURATION_MS}),
+});
 const PERSP = 2.8;               // perspective eye distance (post-normalization coords)
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -1259,8 +1289,9 @@ const UI = {
     scannerOn:'SECTION · ON', scannerOff:'SECTION · OFF',
     scannerLabel:axis => 'SECTION · X' + axis,
     scannerAria:'Cross-section scanner', scanAria:'Cross-section position',
-    clip:'SAVE 30S LOOP', clipRecording:pct => 'REC ' + pct + '%',
-    clipEncoding:'ENCODING…', clipDownload:ext => 'DOWNLOAD ' + ext,
+    clip:seconds => 'SAVE ' + seconds + 'S LOOP', clipRecording:pct => 'REC ' + pct + '%',
+    clipEncoding:'ENCODING…', clipDownload:(seconds, ext) => 'DOWNLOAD ' + seconds + 'S ' + ext,
+    clipDurationAria:'Loop duration', clipDuration15:'15S · SMOOTH', clipDuration30:'30S · HOLD',
     langEN:'English', langJA:'Japanese',
     zoomIn:'Zoom in', zoomOut:'Zoom out',
     fontUp:'Larger text', fontDn:'Smaller text',
@@ -1279,9 +1310,9 @@ const UI = {
     toastHyperspin:'Hyperspin engaged. Loose dimensions secured.',
     toastScannerLocked:'Cross-sections unlock in 4D. Three dimensions are still suspiciously solid.',
     toastScannerIcon:'Turn the Codex specimen on before slicing it. Ethics paperwork is pending.',
-    toastClipUnavailable:'This browser cannot bottle thirty seconds of spacetime.',
+    toastClipUnavailable:seconds => 'This browser cannot bottle ' + seconds + ' seconds of spacetime.',
     toastClipIntro:'Enter the observatory before recording a loop.',
-    toastClipDone:ext => ext + ' loop ready. Thirty seconds of reality have been contained.',
+    toastClipDone:(ext, seconds) => ext + ' loop ready. ' + seconds + ' seconds of reality have been contained.',
     toastClipAborted:'Recording stopped because this dimension left the visible tab.',
     toastClipNeedsCodex:'Turn CODEX on before recording the specimen loop.',
   },
@@ -1295,8 +1326,9 @@ const UI = {
     scannerOn:'断面 · ON', scannerOff:'断面 · OFF',
     scannerLabel:axis => '断面走査 · X' + axis,
     scannerAria:'断面スキャナー', scanAria:'断面位置',
-    clip:'30秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
-    clipEncoding:'変換中…', clipDownload:ext => ext + 'を保存',
+    clip:seconds => seconds + '秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
+    clipEncoding:'変換中…', clipDownload:(seconds, ext) => seconds + '秒' + ext + 'を保存',
+    clipDurationAria:'ループ時間', clipDuration15:'15秒・スムーズ', clipDuration30:'30秒・じっくり',
     langEN:'英語', langJA:'日本語',
     zoomIn:'ズームイン', zoomOut:'ズームアウト',
     fontUp:'文字を大きく', fontDn:'文字を小さく',
@@ -1315,9 +1347,9 @@ const UI = {
     toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
     toastScannerLocked:'断面走査は4次元から解禁です。3次元はまだ妙に頑丈です。',
     toastScannerIcon:'切る前にCodex観測対象をONにしてください。倫理書類は審査中です。',
-    toastClipUnavailable:'このブラウザでは30秒分の時空を瓶詰めできません。',
+    toastClipUnavailable:seconds => 'このブラウザでは' + seconds + '秒分の時空を瓶詰めできません。',
     toastClipIntro:'ループを録画する前に観測室へ入ってください。',
-    toastClipDone:ext => ext + 'ループの準備完了。30秒分の現実を封じ込めました。',
+    toastClipDone:(ext, seconds) => ext + 'ループの準備完了。' + seconds + '秒分の現実を封じ込めました。',
     toastClipAborted:'別タブへ移動したため、時空の録画を中止しました。',
     toastClipNeedsCodex:'観測対象のループを録る前にCODEXをONにしてください。',
   },
@@ -1614,7 +1646,10 @@ let clipState = 'idle', clipStartTime = 0, clipLastDim = 1;
 let clipRecorder = null, clipStream = null, clipChunks = [], clipSnapshot = null;
 let clipBlob = null, clipBlobUrl = '', clipExtension = '';
 let clipAbortReason = '';
+let clipMode = 'held30', clipActiveMode = null, clipReadyMode = null;
 const clipIsBusy = () => clipState === 'recording' || clipState === 'encoding';
+const clipOutputMode = () => clipActiveMode || clipReadyMode || CLIP_MODES[clipMode];
+const clipSeconds = (mode = clipOutputMode()) => Math.round(mode.durationMs / 1000);
 
 /* ---------- canvas ---------- */
 let W = 0, H = 0, DPR = 1;
@@ -2908,7 +2943,7 @@ function drawAxes(D, cs, sn, pl, axisScale){
   }
 }
 
-/* ---------- thirty-second, locally recorded dimensional loop ---------- */
+/* ---------- selectable-duration, locally recorded dimensional loop ---------- */
 function clipMimeCandidates(){
   return [
     'video/mp4;codecs=avc1.42E01E',
@@ -2947,7 +2982,7 @@ function downloadClipBlob(){
   if(!clipBlobUrl) clipBlobUrl = URL.createObjectURL(clipBlob);
   const a = document.createElement('a');
   a.href = clipBlobUrl;
-  a.download = 'codex-11d-30s-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
+  a.download = 'codex-11d-' + clipSeconds() + 's-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -3020,11 +3055,15 @@ function composeClipFrame(){
   clipCtx.fillStyle = 'hsla(210,34%,88%,.72)';
   clipCtx.font = '600 10px Consolas, monospace';
   clipCtx.textAlign = 'left';
-  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 30S REALITY LOOP', 18, H - 17);
+  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // ' + clipSeconds() + 'S REALITY LOOP', 18, H - 17);
   clipCtx.restore();
 }
-function clipDimensionAt(elapsedMs){
-  let elapsed = clamp(elapsedMs, 0, CLIP_DURATION_MS);
+function clipDimensionAt(elapsedMs, mode){
+  if(mode.id === 'smooth15'){
+    const phase = clamp(elapsedMs / mode.durationMs, 0, 1);
+    return 1 + (MAXD - 1) * (1 - Math.cos(phase * Math.PI * 2)) * .5;
+  }
+  let elapsed = clamp(elapsedMs, 0, CLIP_HELD_DURATION_MS);
   if(elapsed < CLIP_HOLD_MS) return 1;
   elapsed -= CLIP_HOLD_MS;
   for(let dimension = 2; dimension <= MAXD; dimension++){
@@ -3050,9 +3089,10 @@ function clipDimensionAt(elapsedMs){
   return 1;
 }
 function updateClipFrame(now){
-  const elapsed = clamp(now - clipStartTime, 0, CLIP_DURATION_MS);
-  const phase = elapsed / CLIP_DURATION_MS;
-  dcur = clipDimensionAt(elapsed);
+  const mode = clipActiveMode || CLIP_MODES[clipMode];
+  const elapsed = clamp(now - clipStartTime, 0, mode.durationMs);
+  const phase = elapsed / mode.durationMs;
+  dcur = clipDimensionAt(elapsed, mode);
   const dimensionProgress = (dcur - 1) / (MAXD - 1);
   target = clamp(Math.round(dcur), 1, MAXD);
   const nextDim = target;
@@ -3068,9 +3108,11 @@ function updateClipFrame(now){
   codexReveal = .74;
   finaleMix = smoothstep(clamp((dimensionProgress - .82) / .18, 0, 1));
   finaleTarget = finaleMix;
-  if(elapsed >= CLIP_DURATION_MS) codexEventAge = CODEX_EVENT_DURATION;
+  if((phase > .5 && nextDim === 1) || elapsed >= mode.durationMs) codexEventAge = CODEX_EVENT_DURATION;
   stage.dataset.clipElapsedMs = String(Math.round(elapsed));
   stage.dataset.clipDimension = dcur.toFixed(3);
+  stage.dataset.clipMode = mode.id;
+  stage.dataset.clipDurationMs = String(mode.durationMs);
   $('btnClip').textContent = UI[lang].clipRecording(Math.round(phase * 100));
 }
 function stopClipRecording(reason = ''){
@@ -3091,8 +3133,10 @@ function finalizeClipRecording(){
   }
   if(clipAbortReason){
     clipChunks = [];
+    clipActiveMode = null;
+    clipReadyMode = null;
     clipState = 'idle';
-    showToast(clipAbortReason === 'hidden' ? UI[lang].toastClipAborted : UI[lang].toastClipUnavailable, 4200);
+    showToast(clipAbortReason === 'hidden' ? UI[lang].toastClipAborted : UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
     renderLabControls();
     return;
   }
@@ -3100,25 +3144,30 @@ function finalizeClipRecording(){
   const blob = new Blob(clipChunks, {type});
   clipChunks = [];
   if(!blob.size){
+    clipActiveMode = null;
+    clipReadyMode = null;
     clipState = 'idle';
-    showToast(UI[lang].toastClipUnavailable, 4200);
+    showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
     renderLabControls();
     return;
   }
   clearClipBlob();
   clipBlob = blob;
   clipExtension = clipTypeExtension(type);
+  clipReadyMode = clipActiveMode || CLIP_MODES[clipMode];
+  clipActiveMode = null;
   stage.dataset.clipBytes = String(blob.size);
   stage.dataset.clipMime = type;
   clipState = 'ready';
   downloadClipBlob();
-  showToast(UI[lang].toastClipDone(clipExtension), 4600);
+  showToast(UI[lang].toastClipDone(clipExtension, clipSeconds(clipReadyMode)), 4600);
   renderLabControls();
 }
 function startClipRecording(){
   if(clipState === 'ready'){
     downloadClipBlob();
     clearClipBlob(1800);
+    clipReadyMode = null;
     clipState = 'idle';
     renderLabControls();
     return;
@@ -3127,11 +3176,12 @@ function startClipRecording(){
   if(!codexIconVisible){ showToast(UI[lang].toastClipNeedsCodex, 3600); return; }
   if(compileState !== 'hidden' || breachActive){ showToast(UI[lang].toastClipIntro, 3600); return; }
   if(typeof HTMLCanvasElement.prototype.captureStream !== 'function' || typeof window.MediaRecorder !== 'function'){
-    showToast(UI[lang].toastClipUnavailable, 4200);
+    showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
     return;
   }
-  if(W < 2 || H < 2){ showToast(UI[lang].toastClipUnavailable, 4200); return; }
+  if(W < 2 || H < 2){ showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200); return; }
   clearClipBlob();
+  clipReadyMode = null;
   stage.dataset.clipBytes = '0';
   stage.dataset.clipMime = '';
   const aspect = W / H;
@@ -3147,13 +3197,13 @@ function startClipRecording(){
     if(clipStream) clipStream.getTracks().forEach(track => track.stop());
     clipStream = null;
     clipRecorder = null;
-    showToast(UI[lang].toastClipUnavailable, 4200);
+    showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
     return;
   }
   if(!clipRecorder){
     clipStream.getTracks().forEach(track => track.stop());
     clipStream = null;
-    showToast(UI[lang].toastClipUnavailable, 4200);
+    showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
     return;
   }
   clipSnapshot = captureClipSnapshot();
@@ -3162,6 +3212,7 @@ function startClipRecording(){
   clipRecorder.addEventListener('dataavailable', event => { if(event.data && event.data.size) clipChunks.push(event.data); });
   clipRecorder.addEventListener('stop', finalizeClipRecording, {once:true});
   clipRecorder.addEventListener('error', () => stopClipRecording('recorder-error'), {once:true});
+  clipActiveMode = CLIP_MODES[clipMode];
   clipState = 'recording';
   clipStartTime = performance.now();
   clipLastDim = 1;
@@ -3177,11 +3228,12 @@ function startClipRecording(){
   try{ clipRecorder.start(250); }
   catch(err){
     clipState = 'idle';
+    clipActiveMode = null;
     app.classList.remove('clip-lock');
     restoreClipSnapshot();
     if(clipStream) clipStream.getTracks().forEach(track => track.stop());
     clipStream = null;
-    showToast(UI[lang].toastClipUnavailable, 4200);
+    showToast(UI[lang].toastClipUnavailable(clipSeconds(CLIP_MODES[clipMode])), 4200);
   }
 }
 
@@ -3221,7 +3273,7 @@ function frame(now){
   draw();
   if(recordingFrame){
     composeClipFrame();
-    if(now - clipStartTime >= CLIP_DURATION_MS) stopClipRecording();
+    if(now - clipStartTime >= (clipActiveMode || CLIP_MODES[clipMode]).durationMs) stopClipRecording();
   }
   requestAnimationFrame(frame);
 }
@@ -3549,6 +3601,7 @@ const btnBoost = $('btnBoost');
 const btnCodex = $('btnCodex');
 const btnScanner = $('btnScanner');
 const btnClip = $('btnClip');
+const clipDuration = $('clipDuration');
 
 function fmt(x){ return x.toLocaleString('en-US'); }
 
@@ -3589,6 +3642,10 @@ function showToast(msg, ms = 3600){
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+function dismissToast(){
+  clearTimeout(toastTimer);
+  $('toast').classList.remove('show');
 }
 
 function renderStats(n){
@@ -3734,6 +3791,8 @@ function renderScannerControl(){
 }
 function renderLabControls(){
   const u = UI[lang];
+  const selectedMode = CLIP_MODES[clipMode];
+  const outputMode = clipOutputMode();
   btnCodex.textContent = codexIconVisible ? u.codexOn : u.codexOff;
   btnCodex.setAttribute('aria-label', codexIconVisible ? u.codexOn : u.codexOff);
   btnCodex.setAttribute('aria-pressed', String(codexIconVisible));
@@ -3747,14 +3806,21 @@ function renderLabControls(){
   stage.dataset.codexVisible = String(codexIconVisible);
   stage.dataset.scannerActive = String(scannerActive);
   stage.dataset.clipState = clipState;
+  stage.dataset.clipMode = outputMode.id;
+  stage.dataset.clipDurationMs = String(outputMode.durationMs);
   $('sectionScanner').hidden = !scannerActive;
   $('scanSlider').setAttribute('aria-label', u.scanAria);
   renderScannerControl();
+  clipDuration.value = clipMode;
+  clipDuration.disabled = clipIsBusy();
+  clipDuration.setAttribute('aria-label', u.clipDurationAria);
+  $('clipDuration15').textContent = u.clipDuration15;
+  $('clipDuration30').textContent = u.clipDuration30;
   btnClip.classList.toggle('is-recording', clipState === 'recording');
   if(clipState === 'recording') btnClip.textContent = u.clipRecording(0);
   else if(clipState === 'encoding') btnClip.textContent = u.clipEncoding;
-  else if(clipState === 'ready') btnClip.textContent = u.clipDownload(clipExtension || 'VIDEO');
-  else btnClip.textContent = u.clip;
+  else if(clipState === 'ready') btnClip.textContent = u.clipDownload(clipSeconds(outputMode), clipExtension || 'VIDEO');
+  else btnClip.textContent = u.clip(clipSeconds(selectedMode));
   btnClip.setAttribute('aria-label', btnClip.textContent);
 }
 function setCodexVisible(value){
@@ -3779,6 +3845,23 @@ $('scanSlider').addEventListener('input', event => {
   renderScannerControl();
 });
 btnClip.addEventListener('click', startClipRecording);
+clipDuration.addEventListener('change', event => {
+  if(clipIsBusy()){
+    event.target.value = clipMode;
+    return;
+  }
+  clipMode = event.target.value === 'smooth15' ? 'smooth15' : 'held30';
+  if(clipState === 'ready'){
+    clearClipBlob();
+    clipReadyMode = null;
+    clipState = 'idle';
+    stage.dataset.clipBytes = '0';
+    stage.dataset.clipMime = '';
+    dismissToast();
+  }
+  try{ localStorage.setItem('dimviz-clip-mode', clipMode); }catch(err){ /* sandboxed storage */ }
+  renderLabControls();
+});
 document.addEventListener('visibilitychange', () => {
   if(document.hidden && clipState === 'recording') stopClipRecording('hidden');
 });
@@ -4120,11 +4203,12 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
 
 /* ---------- init ---------- */
 (function init(){
-  let savedLang = null, savedFs = null;
+  let savedLang = null, savedFs = null, savedClipMode = null;
   const shared = location.hash.match(/^#expedition=11d-v1-([0-9A-Fa-f]{8})-(en|ja)$/);
   try{
     savedLang = localStorage.getItem('dimviz-lang');
     savedFs = localStorage.getItem('dimviz-fs');
+    savedClipMode = localStorage.getItem('dimviz-clip-mode');
   }catch(err){ /* sandboxed storage */ }
   if(shared){
     expeditionSeed = parseInt(shared[1], 16) >>> 0;
@@ -4136,6 +4220,7 @@ $('langJA').addEventListener('click', () => applyLang('ja'));
   }else{
     expeditionSeed = (Date.now() ^ 0x11d0c0de) >>> 0;
   }
+  clipMode = savedClipMode === 'smooth15' ? 'smooth15' : 'held30';
   applyLang(savedLang === 'ja' ? 'ja' : 'en');   // default: EN
   setFontScale(Number.isFinite(+savedFs) && savedFs !== null ? +savedFs : 2); // default: two steps up
   renderStats(3);
@@ -4176,6 +4261,8 @@ Object.defineProperty(window, 'dimensionVisualizerDiagnostics', {
     scannerActive,
     scanSegments:lastScanSegments,
     clipState,
+    clipMode:clipOutputMode().id,
+    clipDurationMs:clipOutputMode().durationMs,
     dcur,
     target,
     canvasWidth:W,
