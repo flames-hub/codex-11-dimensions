@@ -1107,7 +1107,7 @@ input[type=range]::-moz-range-thumb{
         <button id="btnBoost" class="boost" aria-label="LINE BOOST" aria-pressed="false">LINE BOOST</button>
         <button id="btnCodex" class="lab-tool" aria-label="Codex icon on" aria-pressed="true">CODEX · ON</button>
         <button id="btnScanner" class="lab-tool" aria-label="Cross-section scanner" aria-pressed="false" aria-disabled="true">SECTION · OFF</button>
-        <button id="btnClip" class="lab-tool clip" aria-label="Save five second loop">SAVE 5S LOOP</button>
+        <button id="btnClip" class="lab-tool clip" aria-label="Save fifteen second loop">SAVE 15S LOOP</button>
         <button id="btnPassport" class="passport" aria-label="Open dimensional passport">PASSPORT 1/11</button>
       </div>
       <div class="section-scanner" id="sectionScanner" role="group" aria-labelledby="scannerLabel" hidden>
@@ -1239,6 +1239,7 @@ const clipCtx = clipCanvas.getContext('2d');
 const logoPath = document.querySelector('.ai-watermark path');
 
 const MAXD = 11;
+const CLIP_DURATION_MS = 15000;
 const PERSP = 2.8;               // perspective eye distance (post-normalization coords)
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -1255,7 +1256,7 @@ const UI = {
     scannerOn:'SECTION · ON', scannerOff:'SECTION · OFF',
     scannerLabel:axis => 'SECTION · X' + axis,
     scannerAria:'Cross-section scanner', scanAria:'Cross-section position',
-    clip:'SAVE 5S LOOP', clipRecording:pct => 'REC ' + pct + '%',
+    clip:'SAVE 15S LOOP', clipRecording:pct => 'REC ' + pct + '%',
     clipEncoding:'ENCODING…', clipDownload:ext => 'DOWNLOAD ' + ext,
     langEN:'English', langJA:'Japanese',
     zoomIn:'Zoom in', zoomOut:'Zoom out',
@@ -1275,9 +1276,9 @@ const UI = {
     toastHyperspin:'Hyperspin engaged. Loose dimensions secured.',
     toastScannerLocked:'Cross-sections unlock in 4D. Three dimensions are still suspiciously solid.',
     toastScannerIcon:'Turn the Codex specimen on before slicing it. Ethics paperwork is pending.',
-    toastClipUnavailable:'This browser cannot bottle five seconds of spacetime.',
+    toastClipUnavailable:'This browser cannot bottle fifteen seconds of spacetime.',
     toastClipIntro:'Enter the observatory before recording a loop.',
-    toastClipDone:ext => ext + ' loop ready. Five seconds of reality have been contained.',
+    toastClipDone:ext => ext + ' loop ready. Fifteen seconds of reality have been contained.',
     toastClipAborted:'Recording stopped because this dimension left the visible tab.',
     toastClipNeedsCodex:'Turn CODEX on before recording the specimen loop.',
   },
@@ -1291,7 +1292,7 @@ const UI = {
     scannerOn:'断面 · ON', scannerOff:'断面 · OFF',
     scannerLabel:axis => '断面走査 · X' + axis,
     scannerAria:'断面スキャナー', scanAria:'断面位置',
-    clip:'5秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
+    clip:'15秒ループ保存', clipRecording:pct => '録画 ' + pct + '%',
     clipEncoding:'変換中…', clipDownload:ext => ext + 'を保存',
     langEN:'英語', langJA:'日本語',
     zoomIn:'ズームイン', zoomOut:'ズームアウト',
@@ -1311,9 +1312,9 @@ const UI = {
     toastHyperspin:'ハイパースピン開始。緩んだ次元は固定済みです。',
     toastScannerLocked:'断面走査は4次元から解禁です。3次元はまだ妙に頑丈です。',
     toastScannerIcon:'切る前にCodex観測対象をONにしてください。倫理書類は審査中です。',
-    toastClipUnavailable:'このブラウザでは5秒分の時空を瓶詰めできません。',
+    toastClipUnavailable:'このブラウザでは15秒分の時空を瓶詰めできません。',
     toastClipIntro:'ループを録画する前に観測室へ入ってください。',
-    toastClipDone:ext => ext + 'ループの準備完了。5秒分の現実を封じ込めました。',
+    toastClipDone:ext => ext + 'ループの準備完了。15秒分の現実を封じ込めました。',
     toastClipAborted:'別タブへ移動したため、時空の録画を中止しました。',
     toastClipNeedsCodex:'観測対象のループを録る前にCODEXをONにしてください。',
   },
@@ -2904,7 +2905,7 @@ function drawAxes(D, cs, sn, pl, axisScale){
   }
 }
 
-/* ---------- five-second, locally recorded dimensional loop ---------- */
+/* ---------- fifteen-second, locally recorded dimensional loop ---------- */
 function clipMimeCandidates(){
   return [
     'video/mp4;codecs=avc1.42E01E',
@@ -2943,7 +2944,7 @@ function downloadClipBlob(){
   if(!clipBlobUrl) clipBlobUrl = URL.createObjectURL(clipBlob);
   const a = document.createElement('a');
   a.href = clipBlobUrl;
-  a.download = 'codex-11d-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
+  a.download = 'codex-11d-15s-loop-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + clipExtension.toLowerCase();
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -3016,11 +3017,11 @@ function composeClipFrame(){
   clipCtx.fillStyle = 'hsla(210,34%,88%,.72)';
   clipCtx.font = '600 10px Consolas, monospace';
   clipCtx.textAlign = 'left';
-  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 5S REALITY LOOP', 18, H - 17);
+  clipCtx.fillText('CODEX // ' + dcur.toFixed(2) + 'D // 15S REALITY LOOP', 18, H - 17);
   clipCtx.restore();
 }
 function updateClipFrame(now){
-  const phase = clamp((now - clipStartTime) / 5000, 0, 1);
+  const phase = clamp((now - clipStartTime) / CLIP_DURATION_MS, 0, 1);
   const loop = (1 - Math.cos(phase * Math.PI * 2)) * .5;
   dcur = 1 + 10 * loop;
   target = clamp(Math.round(dcur), 1, MAXD);
@@ -3187,7 +3188,7 @@ function frame(now){
   draw();
   if(recordingFrame){
     composeClipFrame();
-    if(now - clipStartTime >= 5000) stopClipRecording();
+    if(now - clipStartTime >= CLIP_DURATION_MS) stopClipRecording();
   }
   requestAnimationFrame(frame);
 }
